@@ -11,10 +11,8 @@
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "firebase-admin": "^11.11.1",
     "cheerio": "^1.0.0",
-    "node-fetch": "^3.3.2",
-    "@opentelemetry/api": "^1.7.0"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.0",
