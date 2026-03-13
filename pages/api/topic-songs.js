@@ -23,8 +23,8 @@ export default async function handler(req, res) {
         id: d.id,
         name: d.data().name,
         movie: d.data().movie || '',
-        tamilAvailable: d.data().tamilStatus === 'found',
-        englishAvailable: d.data().englishStatus === 'found',
+        tamilAvailable: !!d.data().tamilLyrics,
+        englishAvailable: !!d.data().englishLyrics,
       }));
 
     res.status(200).json({ topicName: name, songs });

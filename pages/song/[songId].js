@@ -146,7 +146,9 @@ export default function SongPage() {
           background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25);
           padding: 0.2rem 0.55rem; border-radius: 20px; margin-bottom: 0.75rem;
         }
-          font-style: italic; font-size: 0.9rem;
+        .lyrics-na {
+          font-style: italic; font-size: 0.9rem; color: var(--text-muted);
+          padding: 2rem; text-align: center;
         }
 
         @media (max-width: 400px) {
