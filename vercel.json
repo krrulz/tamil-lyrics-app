@@ -1,6 +1,6 @@
 {
   "functions": {
-    "pages/api/dev/add-topic.js": {
+    "api/dev/add-topic.js": {
       "maxDuration": 60
     }
   }
