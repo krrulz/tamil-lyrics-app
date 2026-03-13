@@ -20,27 +20,40 @@ export default async function handler(req, res) {
 
   try {
     const songId = song.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    console.log(`[add-topic] Processing: "${song.name}" (id: ${songId})`);
 
     const existing = await db.collection('songs').doc(songId).get();
     let result;
 
     if (!existing.exists) {
-      // Step 1: Scrape from tamillyrics143.com
       let tamilText = song.tamilLyrics || null;
       let englishText = song.englishLyrics || null;
 
       if (!tamilText && !englishText) {
+        // DNS check first
+        try {
+          const { resolve4 } = await import('dns/promises');
+          const addrs = await resolve4('tamillyrics143.com');
+          console.log(`[add-topic] DNS OK: ${addrs.join(', ')}`);
+        } catch (e) {
+          console.log(`[add-topic] DNS FAILED: ${e.code} — ${e.message}`);
+        }
+
+        console.log(`[add-topic] Scraping: "${song.name}"`);
         const scraped = await scrapeBothLyricsOptimised(song.name);
         tamilText = scraped.tamil;
         englishText = scraped.english;
+        console.log(`[add-topic] Scrape done — tamil=${tamilText ? tamilText.length + ' chars' : 'null'}, english=${englishText ? englishText.length + ' chars' : 'null'}`);
       }
 
-      // Step 2: Fill missing language via Claude transliteration
+      // Fill missing language via Claude transliteration
+      console.log(`[add-topic] Calling fillMissingLyrics`);
       const filled = await fillMissingLyrics(song.name, tamilText, englishText);
       tamilText = filled.tamil;
       englishText = filled.english;
+      console.log(`[add-topic] After fill — tamilSource=${filled.tamilSource}, englishSource=${filled.englishSource}`);
 
-      // Step 3: Save to Firestore with source tracking
+      // Save to Firestore
       await db.collection('songs').doc(songId).set({
         name: song.name,
         movie: song.movie || '',
@@ -50,6 +63,7 @@ export default async function handler(req, res) {
         englishStatus: filled.englishSource || (englishText ? 'found' : 'not_found'),
         createdAt: new Date().toISOString(),
       });
+      console.log(`[add-topic] Saved to Firestore: ${songId}`);
 
       result = {
         song: song.name,
@@ -60,6 +74,7 @@ export default async function handler(req, res) {
         englishSource: filled.englishSource,
       };
     } else {
+      console.log(`[add-topic] Already exists: ${songId}`);
       result = { song: song.name, new: false, message: 'Already exists' };
     }
 
@@ -84,9 +99,10 @@ export default async function handler(req, res) {
       });
     }
 
+    console.log(`[add-topic] Done: topic=${topicId}, result=${JSON.stringify(result)}`);
     res.status(200).json({ success: true, topic: topicId, result });
   } catch (err) {
-    console.error(err);
+    console.error(`[add-topic] ERROR: ${err.message}`, err.stack);
     res.status(500).json({ error: err.message });
   }
 }
