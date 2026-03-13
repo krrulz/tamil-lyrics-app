@@ -2,7 +2,7 @@
 // Processes ONE song per call to stay within Vercel's 10s function limit.
 // The developer portal calls this endpoint once per song in sequence.
 import { db } from '../../../lib/firebase';
-import { scrapeTamilLyrics, scrapeEnglishLyrics } from '../../../lib/scraper';
+import { scrapeBothLyricsOptimised } from '../../../lib/scraper';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -27,13 +27,15 @@ export default async function handler(req, res) {
     let result;
 
     if (!existing.exists) {
-      const [tamilResult, englishResult] = await Promise.allSettled([
-        scrapeTamilLyrics(song.name),
-        scrapeEnglishLyrics(song.name),
-      ]);
+      // Use manually provided lyrics if given, otherwise scrape both at once
+      let tamilText = song.tamilLyrics || null;
+      let englishText = song.englishLyrics || null;
 
-      const tamilText = tamilResult.status === 'fulfilled' ? tamilResult.value : null;
-      const englishText = englishResult.status === 'fulfilled' ? englishResult.value : null;
+      if (!tamilText && !englishText) {
+        const scraped = await scrapeBothLyricsOptimised(song.name);
+        tamilText = scraped.tamil;
+        englishText = scraped.english;
+      }
 
       await db.collection('songs').doc(songId).set({
         name: song.name,
