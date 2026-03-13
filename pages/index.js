@@ -21,34 +21,7 @@ export default function DevPortal() {
     setAuthed(true);
   };
 
-  const handleManualSubmit = async (e) => {
-    e.preventDefault();
-    setError(''); setResult(null);
-    if (!topicName.trim()) { setError('Topic name is required'); return; }
-    if (!manualSong.name.trim()) { setError('Song name is required'); return; }
-    setSubmitting(true);
-    try {
-      const res = await fetch('/api/dev/add-topic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify({
-          topicName,
-          song: {
-            name: manualSong.name,
-            movie: manualSong.movie,
-            tamilLyrics: manualSong.tamil,
-            englishLyrics: manualSong.english,
-          },
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) setError(data.error || 'Failed');
-      else { setResult({ topic: data.topic, results: [data.result] }); setManualSong({ name: '', movie: '', tamil: '', english: '' }); }
-    } catch (err) { setError('Network error.'); }
-    setSubmitting(false);
-  };
-
-
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setResult(null);
 
@@ -76,7 +49,6 @@ export default function DevPortal() {
         const data = await res.json();
         if (!res.ok) { setError(data.error || 'Failed on: ' + song.name); break; }
         results.push(data.result);
-        // Update UI progressively
         setResult({ topic: data.topic, results: [...results] });
       } catch (err) {
         setError('Network error on: ' + song.name);
@@ -85,6 +57,36 @@ export default function DevPortal() {
     }
 
     if (results.length === songs.length) { setTopicName(''); setSongsText(''); }
+    setSubmitting(false);
+  };
+
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    setError(''); setResult(null);
+    if (!topicName.trim()) { setError('Topic name is required'); return; }
+    if (!manualSong.name.trim()) { setError('Song name is required'); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/dev/add-topic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({
+          topicName,
+          song: {
+            name: manualSong.name,
+            movie: manualSong.movie,
+            tamilLyrics: manualSong.tamil,
+            englishLyrics: manualSong.english,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error || 'Failed');
+      else {
+        setResult({ topic: data.topic, results: [data.result] });
+        setManualSong({ name: '', movie: '', tamil: '', english: '' });
+      }
+    } catch (err) { setError('Network error.'); }
     setSubmitting(false);
   };
 
@@ -291,7 +293,14 @@ export default function DevPortal() {
                   </div>
                 </div>
               </div>
-
+              {error && <p className="form-error">⚠ {error}</p>}
+                <button className="submit-btn" type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <><div className="spinner"/><span>Processing songs one by one… please wait</span></>
+                  ) : (
+                    '→ Add Topic & Scrape Lyrics'
+                  )}
+                </button>
               </form>
             )}
 
@@ -326,14 +335,6 @@ export default function DevPortal() {
             </form>
             )}
 
-              <button className="submit-btn" type="submit" disabled={submitting}>
-                {submitting ? (
-                  <><div className="spinner"/><span>Processing songs one by one… please wait</span></>
-                ) : (
-                  '→ Add Topic & Scrape Lyrics'
-                )}
-              </button>
-            </form>
 
             {result && (
               <div className="result-card" style={{marginTop:'1.5rem'}}>
