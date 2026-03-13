@@ -39,7 +39,7 @@ export default function SongPage() {
       <Head>
         <title>{songName || 'Song'} — Tamil Lyrics</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
@@ -57,102 +57,120 @@ export default function SongPage() {
           border-bottom: 2px solid var(--gold);
         }
         .back-btn {
-          color: var(--gold-light); text-decoration: none; font-size: 0.9rem;
+          color: var(--gold-light); text-decoration: none; font-size: 0.95rem;
           display: flex; align-items: center; gap: 0.4rem; opacity: 0.8; transition: opacity 0.15s;
         }
         .back-btn:hover { opacity: 1; }
 
-        .container { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+        .container { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
 
         /* Language chooser */
-        .chooser {
-          text-align: center;
-          padding: 2rem 0;
-        }
+        .chooser { text-align: center; padding: 3rem 0 2rem; }
         .chooser-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(1.5rem, 5vw, 2.2rem);
-          margin-bottom: 0.4rem;
+          font-family: 'Lora', serif;
+          font-size: clamp(1.7rem, 5vw, 2.4rem);
+          font-weight: 600;
+          margin-bottom: 0.5rem;
           color: var(--deep);
+          letter-spacing: -0.01em;
         }
-        .chooser-sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2.5rem; }
-        .chooser-ornament { font-size: 1.2rem; color: var(--gold); letter-spacing: 0.4rem; margin-bottom: 2rem; }
-        .lang-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .chooser-sub { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2.5rem; }
+        .chooser-ornament { font-size: 1.1rem; color: var(--gold); letter-spacing: 0.5rem; margin-bottom: 2.5rem; }
+        .lang-buttons { display: flex; gap: 1.25rem; justify-content: center; flex-wrap: wrap; }
         .lang-btn {
-          padding: 1.2rem 2.5rem;
-          border-radius: 10px;
-          font-size: 1rem;
+          padding: 1.4rem 2.8rem;
+          border-radius: 12px;
+          font-size: 1.05rem;
           font-weight: 500;
           cursor: pointer;
           transition: transform 0.15s, box-shadow 0.15s;
           border: 2px solid transparent;
-          min-width: 160px;
-          display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+          min-width: 170px;
+          display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
         }
-        .lang-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,18,8,0.15); }
-        .lang-btn-ta {
-          background: var(--deep); color: var(--gold-light); border-color: var(--gold);
-        }
-        .lang-btn-en {
-          background: var(--card-bg); color: var(--deep); border-color: var(--border);
-        }
-        .lang-btn-icon { font-size: 1.5rem; }
-        .lang-btn-label { font-size: 0.75rem; opacity: 0.7; letter-spacing: 0.05em; }
+        .lang-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(28,18,8,0.18); }
+        .lang-btn-ta { background: var(--deep); color: var(--gold-light); border-color: var(--gold); }
+        .lang-btn-en { background: var(--card-bg); color: var(--deep); border-color: var(--border); }
+        .lang-btn-icon { font-size: 1.8rem; }
+        .lang-btn-label { font-size: 0.78rem; opacity: 0.65; letter-spacing: 0.06em; text-transform: uppercase; }
 
-        /* Lyrics display */
-        .lyrics-header { margin-bottom: 1.5rem; }
+        /* Lyrics header */
+        .lyrics-header { margin-bottom: 1.75rem; }
         .lyrics-song-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(1.6rem, 5vw, 2.2rem);
-          color: var(--deep); margin-bottom: 0.3rem;
+          font-family: 'Lora', serif;
+          font-size: clamp(1.7rem, 5vw, 2.4rem);
+          font-weight: 600;
+          color: var(--deep);
+          margin-bottom: 0.4rem;
+          letter-spacing: -0.01em;
+          line-height: 1.2;
         }
-        .lyrics-movie { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.6rem; }
-        .lyrics-lang-bar {
-          display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+        .lyrics-movie {
+          font-family: 'Inter', sans-serif;
+          font-size: 0.9rem;
+          color: var(--text-muted);
+          margin-bottom: 1rem;
+          letter-spacing: 0.01em;
         }
+        .lyrics-lang-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
         .lang-toggle-btn {
-          padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.78rem;
-          font-weight: 500; cursor: pointer; border: 1px solid; transition: all 0.15s;
+          padding: 0.45rem 1.1rem; border-radius: 20px; font-size: 0.82rem;
+          font-weight: 500; cursor: pointer; border: 1.5px solid; transition: all 0.15s;
+          letter-spacing: 0.02em;
         }
         .lang-toggle-active { background: var(--deep); color: var(--gold-light); border-color: var(--gold); }
         .lang-toggle-inactive { background: var(--card-bg); color: var(--text-muted); border-color: var(--border); }
         .lang-toggle-inactive:hover { border-color: var(--gold); color: var(--deep); }
 
-        .lyrics-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0 1.5rem; }
+        .lyrics-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0 2rem; }
 
+        /* Tamil lyrics */
         .lyrics-body {
           font-family: 'Noto Serif Tamil', serif;
-          font-size: clamp(1rem, 2.5vw, 1.15rem);
-          line-height: 1.95;
+          font-size: clamp(1.2rem, 3vw, 1.45rem);
+          line-height: 2.2;
           color: var(--deep);
           white-space: pre-wrap;
           background: var(--card-bg);
           border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 1.75rem 1.5rem;
+          border-radius: 14px;
+          padding: 2.25rem 2rem;
           min-height: 200px;
+          letter-spacing: 0.02em;
+          word-spacing: 0.1em;
         }
+
+        /* English transliteration */
         .lyrics-body.english {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+          font-family: 'Lora', serif;
+          font-size: clamp(1.1rem, 2.8vw, 1.3rem);
           font-style: italic;
+          line-height: 2.15;
+          letter-spacing: 0.01em;
+          word-spacing: 0.05em;
         }
+
         .lyrics-loading {
-          text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic;
+          text-align: center; padding: 3rem; color: var(--text-muted);
+          font-style: italic; font-size: 1rem;
         }
         .lyrics-source {
           display: inline-flex; align-items: center; gap: 0.3rem;
-          font-size: 0.7rem; color: #A78BFA;
+          font-size: 0.72rem; color: #A78BFA;
           background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25);
-          padding: 0.2rem 0.55rem; border-radius: 20px; margin-bottom: 0.75rem;
+          padding: 0.25rem 0.6rem; border-radius: 20px; margin-bottom: 1rem;
+          letter-spacing: 0.04em;
         }
         .lyrics-na {
-          font-style: italic; font-size: 0.9rem; color: var(--text-muted);
-          padding: 2rem; text-align: center;
+          font-style: italic; font-size: 1rem; color: var(--text-muted);
+          padding: 2.5rem; text-align: center;
         }
 
-        @media (max-width: 400px) {
-          .lang-btn { min-width: 130px; padding: 1rem 1.5rem; }
+        @media (max-width: 480px) {
+          .container { padding: 1.75rem 1.1rem 4rem; }
+          .lang-btn { min-width: 140px; padding: 1.1rem 1.75rem; }
+          .lyrics-body { padding: 1.5rem 1.25rem; font-size: 1.15rem; line-height: 2.1; }
+          .lyrics-body.english { font-size: 1.05rem; }
         }
       `}</style>
 
