@@ -20,7 +20,7 @@ export default function Home() {
         <title>Tamil Lyrics — கவிதை தொகுப்பு</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil:wght@400;600;700&family=Lora:ital,wght@0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
@@ -60,10 +60,11 @@ export default function Home() {
           position: relative;
         }
         .header-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Lora', serif;
           font-size: clamp(2.2rem, 7vw, 4rem);
           color: #FFF8EE;
           line-height: 1.1;
+          font-weight: 600;
           position: relative;
         }
         .header-title em {
@@ -131,10 +132,10 @@ export default function Home() {
 
         .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
         .card-name {
-          font-family: 'Playfair Display', serif;
-          font-size: 1.25rem;
+          font-family: 'Lora', serif;
+          font-size: 1.2rem;
           color: var(--deep);
-          font-weight: 700;
+          font-weight: 600;
           margin-bottom: 0.3rem;
           line-height: 1.3;
         }
