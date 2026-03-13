@@ -1,8 +1,9 @@
 // pages/api/dev/add-topic.js
 // Processes ONE song per call to stay within Vercel's 10s function limit.
-// The developer portal calls this endpoint once per song in sequence.
+// After scraping, fills missing language via Claude transliteration.
 import { db } from '../../../lib/firebase';
 import { scrapeBothLyricsOptimised } from '../../../lib/scraper';
+import { fillMissingLyrics } from '../../../lib/transliterate';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -13,8 +14,6 @@ export default async function handler(req, res) {
   }
 
   const { topicName, song } = req.body;
-  // song = { name: "Kannaana Kanney", movie: "Viswasam" }
-
   if (!topicName || !song || !song.name) {
     return res.status(400).json({ error: 'topicName and song { name, movie } required' });
   }
@@ -22,12 +21,11 @@ export default async function handler(req, res) {
   try {
     const songId = song.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
 
-    // Check if already exists
     const existing = await db.collection('songs').doc(songId).get();
     let result;
 
     if (!existing.exists) {
-      // Use manually provided lyrics if given, otherwise scrape both at once
+      // Step 1: Scrape from tamillyrics143.com
       let tamilText = song.tamilLyrics || null;
       let englishText = song.englishLyrics || null;
 
@@ -37,17 +35,30 @@ export default async function handler(req, res) {
         englishText = scraped.english;
       }
 
+      // Step 2: Fill missing language via Claude transliteration
+      const filled = await fillMissingLyrics(song.name, tamilText, englishText);
+      tamilText = filled.tamil;
+      englishText = filled.english;
+
+      // Step 3: Save to Firestore with source tracking
       await db.collection('songs').doc(songId).set({
         name: song.name,
         movie: song.movie || '',
         tamilLyrics: tamilText || '',
         englishLyrics: englishText || '',
-        tamilStatus: tamilText ? 'found' : 'not_found',
-        englishStatus: englishText ? 'found' : 'not_found',
+        tamilStatus: filled.tamilSource || (tamilText ? 'found' : 'not_found'),
+        englishStatus: filled.englishSource || (englishText ? 'found' : 'not_found'),
         createdAt: new Date().toISOString(),
       });
 
-      result = { song: song.name, tamilFound: !!tamilText, englishFound: !!englishText, new: true };
+      result = {
+        song: song.name,
+        new: true,
+        tamilFound: !!tamilText,
+        englishFound: !!englishText,
+        tamilSource: filled.tamilSource,
+        englishSource: filled.englishSource,
+      };
     } else {
       result = { song: song.name, new: false, message: 'Already exists' };
     }
