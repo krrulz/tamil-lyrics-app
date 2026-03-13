@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       ok: response.ok,
       elapsed_ms: elapsed,
       body_length: body.length,
-      body_preview: body.slice(0, 500),
+      body_preview: body.slice(0, 50000),
       headers: Object.fromEntries(response.headers.entries()),
     });
 
