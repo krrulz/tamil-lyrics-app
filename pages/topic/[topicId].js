@@ -23,7 +23,7 @@ export default function TopicPage() {
       <Head>
         <title>{data?.topicName || 'Songs'} — Tamil Lyrics</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil:wght@400;600;700&family=Lora:ital,wght@0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
       </Head>
 
       <style>{`
@@ -81,7 +81,7 @@ export default function TopicPage() {
         .song-item:hover { transform: translateX(4px); border-color: var(--gold); box-shadow: 0 4px 14px rgba(28,18,8,0.09); }
         .song-name {
           font-family: 'Playfair Display', serif;
-          font-size: 1.1rem; color: var(--deep); font-weight: 700; margin-bottom: 0.25rem;
+          font-size: 1.1rem; color: var(--deep); font-weight: 600; margin-bottom: 0.25rem;
         }
         .song-movie { font-size: 0.8rem; color: var(--text-muted); }
         .song-badges { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
