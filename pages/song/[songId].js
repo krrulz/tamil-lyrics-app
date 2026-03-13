@@ -140,8 +140,12 @@ export default function SongPage() {
         .lyrics-loading {
           text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic;
         }
-        .lyrics-na {
-          text-align: center; padding: 2rem; color: var(--text-muted);
+        .lyrics-source {
+          display: inline-flex; align-items: center; gap: 0.3rem;
+          font-size: 0.7rem; color: #A78BFA;
+          background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25);
+          padding: 0.2rem 0.55rem; border-radius: 20px; margin-bottom: 0.75rem;
+        }
           font-style: italic; font-size: 0.9rem;
         }
 
@@ -197,9 +201,14 @@ export default function SongPage() {
 
             {loading && <div className="lyrics-loading">Loading lyrics…</div>}
             {!loading && lyrics && (
-              lyrics.lyrics && lyrics.lyrics !== 'Lyrics not available for this language.'
-                ? <pre className={`lyrics-body${selectedLang === 'english' ? ' english' : ''}`}>{lyrics.lyrics}</pre>
-                : <div className="lyrics-na">Lyrics not available in this language yet.</div>
+              <>
+                {(lyrics.status === 'transliterated') && (
+                  <div className="lyrics-source">✦ AI transliterated</div>
+                )}
+                {lyrics.lyrics && lyrics.lyrics !== 'Lyrics not available for this language.'
+                  ? <pre className={`lyrics-body${selectedLang === 'english' ? ' english' : ''}`}>{lyrics.lyrics}</pre>
+                  : <div className="lyrics-na">Lyrics not available in this language yet.</div>
+              }</>
             )}
           </>
         )}
