@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/dev/add-topic.js": {
-      "maxDuration": 60
-    }
-  }
-}
