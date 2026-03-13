@@ -24,8 +24,7 @@ export default function DevPortal() {
     setError(''); setResult(null);
 
     if (!topicName.trim()) { setError('Topic name is required'); return; }
-    
-    // Parse songs: each line = "Song Name | Movie Name" or just "Song Name"
+
     const lines = songsText.split('\n').map(l => l.trim()).filter(Boolean);
     if (lines.length === 0) { setError('Add at least one song'); return; }
 
@@ -35,21 +34,28 @@ export default function DevPortal() {
     });
 
     setSubmitting(true);
-    try {
-      const res = await fetch('/api/dev/add-topic', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-        },
-        body: JSON.stringify({ topicName, songs }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Failed'); }
-      else { setResult(data); setTopicName(''); setSongsText(''); }
-    } catch (err) {
-      setError('Network error. Try again.');
+    const results = [];
+
+    // Call API once per song to stay within Vercel's 10s function timeout
+    for (const song of songs) {
+      try {
+        const res = await fetch('/api/dev/add-topic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+          body: JSON.stringify({ topicName, song }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setError(data.error || 'Failed on: ' + song.name); break; }
+        results.push(data.result);
+        // Update UI progressively
+        setResult({ topic: data.topic, results: [...results] });
+      } catch (err) {
+        setError('Network error on: ' + song.name);
+        break;
+      }
     }
+
+    if (results.length === songs.length) { setTopicName(''); setSongsText(''); }
     setSubmitting(false);
   };
 
@@ -249,7 +255,7 @@ export default function DevPortal() {
 
               <button className="submit-btn" type="submit" disabled={submitting}>
                 {submitting ? (
-                  <><div className="spinner"/><span>Scraping lyrics… (may take 1-2 min)</span></>
+                  <><div className="spinner"/><span>Processing songs one by one… please wait</span></>
                 ) : (
                   '→ Add Topic & Scrape Lyrics'
                 )}
