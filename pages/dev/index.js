@@ -9,6 +9,8 @@ export default function DevPortal() {
 
   const [topicName, setTopicName] = useState('');
   const [songsText, setSongsText] = useState('');
+  const [manualMode, setManualMode] = useState(false);
+  const [manualSong, setManualSong] = useState({ name: '', movie: '', tamil: '', english: '' });
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -47,7 +49,6 @@ export default function DevPortal() {
         const data = await res.json();
         if (!res.ok) { setError(data.error || 'Failed on: ' + song.name); break; }
         results.push(data.result);
-        // Update UI progressively
         setResult({ topic: data.topic, results: [...results] });
       } catch (err) {
         setError('Network error on: ' + song.name);
@@ -56,6 +57,36 @@ export default function DevPortal() {
     }
 
     if (results.length === songs.length) { setTopicName(''); setSongsText(''); }
+    setSubmitting(false);
+  };
+
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    setError(''); setResult(null);
+    if (!topicName.trim()) { setError('Topic name is required'); return; }
+    if (!manualSong.name.trim()) { setError('Song name is required'); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/dev/add-topic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({
+          topicName,
+          song: {
+            name: manualSong.name,
+            movie: manualSong.movie,
+            tamilLyrics: manualSong.tamil,
+            englishLyrics: manualSong.english,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error || 'Failed');
+      else {
+        setResult({ topic: data.topic, results: [data.result] });
+        setManualSong({ name: '', movie: '', tamil: '', english: '' });
+      }
+    } catch (err) { setError('Network error.'); }
     setSubmitting(false);
   };
 
@@ -178,6 +209,7 @@ export default function DevPortal() {
         .rbadge-ok { background: rgba(52,211,153,0.15); color: var(--success); }
         .rbadge-no { background: rgba(252,129,129,0.15); color: var(--error); }
         .rbadge-exists { background: rgba(251,191,36,0.15); color: var(--warn); }
+        .rbadge-ai { background: rgba(167,139,250,0.15); color: #A78BFA; border: 1px solid rgba(167,139,250,0.3); }
 
         .link-row { margin-top: 1rem; font-size: 0.8rem; color: var(--muted); }
         .link-row a { color: var(--accent); text-decoration: none; }
@@ -226,6 +258,17 @@ export default function DevPortal() {
 
             <p className="section-title">Add New Topic & Songs</p>
 
+            {/* Mode toggle */}
+            <div style={{display:'flex',gap:'0.5rem',marginBottom:'1.25rem'}}>
+              <button onClick={()=>setManualMode(false)} style={{padding:'0.4rem 1rem',borderRadius:'6px',border:'1px solid',fontSize:'0.8rem',cursor:'pointer',background:!manualMode?'var(--accent)':'var(--surface2)',color:!manualMode?'#fff':'var(--muted)',borderColor:!manualMode?'var(--accent)':'var(--border)'}}>
+                Auto-scrape
+              </button>
+              <button onClick={()=>setManualMode(true)} style={{padding:'0.4rem 1rem',borderRadius:'6px',border:'1px solid',fontSize:'0.8rem',cursor:'pointer',background:manualMode?'var(--accent)':'var(--surface2)',color:manualMode?'#fff':'var(--muted)',borderColor:manualMode?'var(--accent)':'var(--border)'}}>
+                Manual entry
+              </button>
+            </div>
+
+            {!manualMode && (
             <form onSubmit={handleSubmit}>
               <div className="form-card">
                 <div className="form-group">
@@ -250,17 +293,48 @@ export default function DevPortal() {
                   </div>
                 </div>
               </div>
-
               {error && <p className="form-error">⚠ {error}</p>}
+                <button className="submit-btn" type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <><div className="spinner"/><span>Processing songs one by one… please wait</span></>
+                  ) : (
+                    '→ Add Topic & Scrape Lyrics'
+                  )}
+                </button>
+              </form>
+            )}
 
+            {manualMode && (
+            <form onSubmit={handleManualSubmit}>
+              <div className="form-card">
+                <div className="form-group">
+                  <label>Topic Name</label>
+                  <input type="text" placeholder="e.g. Love Songs, 90s Hits…" value={topicName} onChange={e=>setTopicName(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label>Song Name</label>
+                  <input type="text" placeholder="e.g. Aararo Aariraro" value={manualSong.name} onChange={e=>setManualSong(p=>({...p,name:e.target.value}))} />
+                </div>
+                <div className="form-group">
+                  <label>Movie Name <span>(optional)</span></label>
+                  <input type="text" placeholder="e.g. Ilaiyaraaja" value={manualSong.movie} onChange={e=>setManualSong(p=>({...p,movie:e.target.value}))} />
+                </div>
+                <div className="form-group">
+                  <label>Tamil Lyrics <span>(paste here)</span></label>
+                  <textarea placeholder={"ஆரோ ஆரிரோ\nஆரிரோ ஆரிரோ..."} style={{minHeight:'140px'}} value={manualSong.tamil} onChange={e=>setManualSong(p=>({...p,tamil:e.target.value}))} />
+                </div>
+                <div className="form-group" style={{marginBottom:0}}>
+                  <label>English Lyrics <span>(paste transliteration)</span></label>
+                  <textarea placeholder={"Aararo Aariraro\nAariraro Aariraro..."} style={{minHeight:'140px'}} value={manualSong.english} onChange={e=>setManualSong(p=>({...p,english:e.target.value}))} />
+                </div>
+              </div>
+              {error && <p className="form-error">⚠ {error}</p>}
               <button className="submit-btn" type="submit" disabled={submitting}>
-                {submitting ? (
-                  <><div className="spinner"/><span>Processing songs one by one… please wait</span></>
-                ) : (
-                  '→ Add Topic & Scrape Lyrics'
-                )}
+                {submitting ? <><div className="spinner"/><span>Saving…</span></> : '→ Save Song'}
               </button>
             </form>
+            )}
+
 
             {result && (
               <div className="result-card" style={{marginTop:'1.5rem'}}>
@@ -272,11 +346,11 @@ export default function DevPortal() {
                       {r.new === false
                         ? <span className="rbadge rbadge-exists">already exists</span>
                         : <>
-                            <span className={`rbadge ${r.tamilFound ? 'rbadge-ok' : 'rbadge-no'}`}>
-                              {r.tamilFound ? 'Tamil ✓' : 'Tamil ✗'}
+                            <span className={`rbadge ${r.tamilFound ? (r.tamilSource === 'transliterated' ? 'rbadge-ai' : 'rbadge-ok') : 'rbadge-no'}`}>
+                              {r.tamilFound ? (r.tamilSource === 'transliterated' ? 'Tamil ✦AI' : 'Tamil ✓') : 'Tamil ✗'}
                             </span>
-                            <span className={`rbadge ${r.englishFound ? 'rbadge-ok' : 'rbadge-no'}`}>
-                              {r.englishFound ? 'EN ✓' : 'EN ✗'}
+                            <span className={`rbadge ${r.englishFound ? (r.englishSource === 'transliterated' ? 'rbadge-ai' : 'rbadge-ok') : 'rbadge-no'}`}>
+                              {r.englishFound ? (r.englishSource === 'transliterated' ? 'EN ✦AI' : 'EN ✓') : 'EN ✗'}
                             </span>
                           </>
                       }
