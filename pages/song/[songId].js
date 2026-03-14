@@ -35,6 +35,8 @@ export default function SongPage() {
   };
 
   // Parse lyrics into segments with speaker labels
+  // Handles formats from tamillyrics143.com:
+  //   "Male : some line"  "Female : line"  "· Male :"  "ஆண் :"  "Chorus :"
   const parseLyrics = (text) => {
     if (!text) return [];
     const lines = text.split('\n');
@@ -42,25 +44,37 @@ export default function SongPage() {
     let currentSpeaker = null;
     let currentLines = [];
 
-    const SPEAKER_RE = /^\s*(?:\[?\s*)?(Male|Female|Chorus|Man|Woman|பெண்|ஆண்|இருவரும்|Both|Duet|Solo|All|Hero|Heroine|குழு)[\s:.\]–-]*/i;
+    // Matches speaker label at START of line, with optional bullet/bracket prefix
+    // e.g.  "Male :"  "· Female :"  "[Chorus]"  "ஆண் :"  "Hero :"
+    const SPEAKER_RE = /^[\s·•\-–]*\[?\s*(Male|Female|Chorus|Man|Woman|Both|Duet|Solo|All|Hero|Heroine|ஆண்|பெண்|இருவரும்|குழு)\s*[:\]–\-]?\s*$/i;
+    // Also matches "Male : actual lyric text on same line"
+    const SPEAKER_INLINE_RE = /^[\s·•\-–]*\[?\s*(Male|Female|Chorus|Man|Woman|Both|Duet|Solo|All|Hero|Heroine|ஆண்|பெண்|இருவரும்|குழு)\s*[:\]–\-]+\s+(.+)/i;
 
     const flush = () => {
       if (currentLines.length > 0) {
-        segments.push({ speaker: currentSpeaker, lines: currentLines });
+        segments.push({ speaker: currentSpeaker, lines: [...currentLines] });
         currentLines = [];
       }
     };
 
     for (const line of lines) {
-      const match = line.match(SPEAKER_RE);
-      if (match) {
+      // Check for standalone label line (e.g. "Male :" alone)
+      const standAlone = line.match(SPEAKER_RE);
+      if (standAlone) {
         flush();
-        currentSpeaker = match[1].toLowerCase();
-        const rest = line.replace(SPEAKER_RE, '').trim();
-        if (rest) currentLines.push(rest);
-      } else {
-        currentLines.push(line);
+        currentSpeaker = standAlone[1].toLowerCase();
+        continue;
       }
+      // Check for inline label (e.g. "Male : Pon Ondru Kanden")
+      const inline = line.match(SPEAKER_INLINE_RE);
+      if (inline) {
+        flush();
+        currentSpeaker = inline[1].toLowerCase();
+        currentLines.push(inline[2].trim());
+        continue;
+      }
+      // Regular lyric line
+      currentLines.push(line);
     }
     flush();
     return segments;
