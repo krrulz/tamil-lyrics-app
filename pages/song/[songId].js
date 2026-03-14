@@ -303,11 +303,13 @@ export default function SongPage() {
                 <button className={`lang-toggle-btn ${selectedLang==='tamil'?'lang-toggle-active':'lang-toggle-inactive'}`} onClick={() => chooseLang('tamil')}>தமிழ்</button>
                 <button className={`lang-toggle-btn ${selectedLang==='english'?'lang-toggle-active':'lang-toggle-inactive'}`} onClick={() => chooseLang('english')}>English</button>
               </div>
-              <div className="legend">
-                <span className="legend-item legend-male">♂ Male</span>
-                <span className="legend-item legend-female">♀ Female</span>
-                <span className="legend-item legend-chorus">♪ Chorus</span>
-              </div>
+              {lyrics?.lyrics && parseLyrics(lyrics.lyrics).some(s => s.speaker !== null) && (
+                <div className="legend">
+                  <span className="legend-item legend-male">♂ Male</span>
+                  <span className="legend-item legend-female">♀ Female</span>
+                  <span className="legend-item legend-chorus">♪ Chorus</span>
+                </div>
+              )}
             </div>
             <hr className="lyrics-divider" />
 
