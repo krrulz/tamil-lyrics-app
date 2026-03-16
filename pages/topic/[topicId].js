@@ -37,7 +37,7 @@ export default function TopicPage() {
       .catch(() => setLoading(false));
   };
 
-  const handleAutoAdd = async (e) => {
+  const handleAutoAdd = async (e, forceRescrape = false) => {
     e.preventDefault();
     setAddError(''); setAddResult(null);
     const lines = songInput.split('\n').map(l => l.trim()).filter(Boolean);
@@ -50,7 +50,7 @@ export default function TopicPage() {
         const res = await fetch('/api/dev/add-topic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-          body: JSON.stringify({ topicName: data.topicName, song: { name, movie: movie || '' } }),
+          body: JSON.stringify({ topicName: data.topicName, song: { name, movie: movie || '' }, forceRescrape }),
         });
         const d = await res.json();
         if (!res.ok) { setAddError(d.error || 'Failed on: ' + name); break; }
@@ -233,6 +233,7 @@ export default function TopicPage() {
                   <>
                     <div className="mode-tabs">
                       <button className={`mode-tab ${addMode==='auto'?'mode-tab-active':'mode-tab-inactive'}`} onClick={() => setAddMode('auto')}>Auto-scrape</button>
+                      <button className={`mode-tab ${addMode==='rescrape'?'mode-tab-active':'mode-tab-inactive'}`} onClick={() => setAddMode('rescrape')}>Re-scrape existing</button>
                       <button className={`mode-tab ${addMode==='manual'?'mode-tab-active':'mode-tab-inactive'}`} onClick={() => setAddMode('manual')}>Manual entry</button>
                     </div>
 
@@ -246,6 +247,21 @@ export default function TopicPage() {
                         {addError && <p className="add-error">⚠ {addError}</p>}
                         <button className="submit-btn" type="submit" disabled={adding}>
                           {adding ? <><div className="spinner"/><span>Scraping…</span></> : '→ Add & Scrape'}
+                        </button>
+                      </form>
+                    )}
+
+                    {addMode === 'rescrape' && (
+                      <form onSubmit={(e) => { e.preventDefault(); handleAutoAdd(e, true); }}>
+                        <p className="dev-hint" style={{marginBottom:'0.75rem',color:'var(--warn)'}}>⚠ This will overwrite existing lyrics for the listed songs. Use to fix colour coding on already-saved songs.</p>
+                        <label className="dev-label">Songs to re-scrape <span style={{textTransform:'none',letterSpacing:0}}>(one per line)</span></label>
+                        <textarea className="dev-textarea" rows={4}
+                          placeholder={"Theradi Veedhiyil | Run\nAzhagooril Poothavale | Thirumalai"}
+                          value={songInput} onChange={e => setSongInput(e.target.value)} />
+                        <p className="dev-hint">These songs will be force re-scraped even if they already have lyrics.</p>
+                        {addError && <p className="add-error">⚠ {addError}</p>}
+                        <button className="submit-btn" type="submit" disabled={adding} style={{background:'#B45309'}}>
+                          {adding ? <><div className="spinner"/><span>Re-scraping…</span></> : '↺ Force Re-scrape'}
                         </button>
                       </form>
                     )}
