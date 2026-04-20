@@ -245,7 +245,7 @@ export default function DevPortal() {
                   <button className="btn btn-sm" style={{background:'var(--surface2)',color:'var(--muted)',border:'1px solid var(--border)'}} onClick={resetAll}>← Start Over</button>
                 </div>
                 <p style={{fontSize:'0.78rem',color:'var(--muted)',marginBottom:'1rem'}}>
-                  Review each song. Edit Tamil/English lyrics if needed. Add <code style={{color:'var(--accent2)'}}>Male :</code> / <code style={{color:'var(--accent2)'}}>Female :</code> / <code style={{color:'var(--accent2)'}}>Chorus :</code> labels for colour coding. Uncheck songs to skip.
+                  Lyrics auto-fetched below. ✅ = found automatically. Click <strong style={{color:'var(--warn)'}}>Edit</strong> only if you spot errors — fix speaker labels, wrong characters, or spelling. Uncheck songs to skip saving them.
                 </p>
 
                 <div className="preview-list">
@@ -271,9 +271,9 @@ export default function DevPortal() {
                       </div>
 
                       <div className="preview-body">
-                        {!p.found && !p.editing && (
+                      {!p.found && !p.editing && (
                           <p style={{fontSize:'0.78rem',color:'var(--error)',marginBottom:'0.5rem'}}>
-                            Could not find lyrics automatically. You can paste them manually using Edit.
+                            ⚠ Could not find lyrics automatically. Click Edit to paste manually, or uncheck to skip.
                           </p>
                         )}
 
