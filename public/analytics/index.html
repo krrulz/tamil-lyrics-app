@@ -672,370 +672,154 @@
     </div>
     
     <script>
-        // Poll data extracted from WhatsApp
-        const pollsData = [
-            {
-                name: "Best song to jam ❤️",
-                songs: [
-                    { name: "Yaaro yaarodi", votes: 0 },
-                    { name: "Engal veetil ella naalum", votes: 0 },
-                    { name: "Dating song - Boys", votes: 9 },
-                    { name: "Vaseegara", votes: 11 },
-                    { name: "Ondrai rendai", votes: 4 },
-                    { name: "Azhagiya Asura", votes: 3 },
-                    { name: "Ennai konjam maatri", votes: 9 },
-                    { name: "Enna solla pogirai", votes: 7 },
-                    { name: "Eppa eppa ayyapa", votes: 1 },
-                    { name: "Ninaithu ninaithu paarthal", votes: 7 },
-                    { name: "En uchi mandaile", votes: 4 },
-                    { name: "Manjal vezhil", votes: 4 }
-                ]
-            },
-            {
-                name: "Continue voting",
-                songs: [
-                    { name: "Paartha mudhal naale", votes: 4 },
-                    { name: "Kathalikum Aasai illae", votes: 1 },
-                    { name: "Azhagiye theeye - Minnale", votes: 7 },
-                    { name: "Pachai nirame", votes: 9 },
-                    { name: "Sight adipom dum adipom", votes: 2 },
-                    { name: "Kutti pisase", votes: 1 },
-                    { name: "New York nagaram", votes: 6 },
-                    { name: "Naan pogiren mele mele", votes: 5 },
-                    { name: "Aarabu naade", votes: 7 },
-                    { name: "Thaniye thananthaniye", votes: 8 },
-                    { name: "Thirumana malargal", votes: 1 },
-                    { name: "Theepidika theepidika", votes: 7 }
-                ]
-            },
-            {
-                name: "Poll 3",
-                songs: [
-                    { name: "Kodana kodi", votes: 4 },
-                    { name: "Hosaana", votes: 3 },
-                    { name: "Vaadi Vaadi Kai padadha CD", votes: 0 },
-                    { name: "Un perai sonnale", votes: 6 },
-                    { name: "Kanaa kaanum kaalangal", votes: 4 },
-                    { name: "Minnalai pidithu", votes: 3 },
-                    { name: "Loosu penne", votes: 6 },
-                    { name: "Irumbile oru idhayam", votes: 7 },
-                    { name: "Pottu thaaku", votes: 1 },
-                    { name: "Kannazhaga", votes: 2 },
-                    { name: "Poovasam purapadum penne", votes: 7 },
-                    { name: "Sollamal thotu sellum", votes: 4 }
-                ]
-            },
-            {
-                name: "Poll 4",
-                songs: [
-                    { name: "Idhu varai", votes: 4 },
-                    { name: "Nenjukul peidhidum", votes: 5 },
-                    { name: "Sa re ga me - boys", votes: 5 },
-                    { name: "Venmathi venmathiye", votes: 10 },
-                    { name: "Mala Mala - Chocolate", votes: 0 },
-                    { name: "Appudi podu podu", votes: 1 },
-                    { name: "Melliname", votes: 1 },
-                    { name: "June ponal July kaatre", votes: 6 },
-                    { name: "Poovuku pirandha naal - Mr John", votes: 1 },
-                    { name: "Oru maalai", votes: 3 },
-                    { name: "Kattu kattu keerai kattu", votes: 0 },
-                    { name: "Oru punagai poove", votes: 8 }
-                ]
-            },
-            {
-                name: "Poll 5",
-                songs: [
-                    { name: "Anjala", votes: 11 },
-                    { name: "Naan adicha thaangamata", votes: 0 },
-                    { name: "Kannukula keluthi", votes: 2 },
-                    { name: "Oru chinna thamarai", votes: 1 },
-                    { name: "Yennai pandhada pirandhavale", votes: 2 },
-                    { name: "Karikalan Kala pola", votes: 2 },
-                    { name: "Kadhal mazhaye", votes: 2 },
-                    { name: "Ella pughazhum oruvan", votes: 1 },
-                    { name: "Alwarpete andava", votes: 9 },
-                    { name: "Valayapatti thavile", votes: 2 },
-                    { name: "Vizhiganil aruganil vaanam", votes: 3 },
-                    { name: "Maduraiku pogadhadi", votes: 3 }
-                ]
-            },
-            {
-                name: "Poll 6",
-                songs: [
-                    { name: "Yeno yeno panithuli", votes: 0 },
-                    { name: "Vaada mapillai", votes: 1 },
-                    { name: "Sahanaa", votes: 1 },
-                    { name: "Mundhinam parthene", votes: 9 },
-                    { name: "Yaaro manathile- Dhaam dhoom", votes: 2 },
-                    { name: "Thaen Thaen thaen", votes: 0 },
-                    { name: "Unai naan - JJ", votes: 1 },
-                    { name: "May madham 98il", votes: 0 },
-                    { name: "Kodambakkam area", votes: 2 },
-                    { name: "Kadhal vaithu", votes: 0 },
-                    { name: "Kaatrin mozhi", votes: 3 },
-                    { name: "Pooparika neeyum pogadha", votes: 3 }
-                ]
-            },
-            {
-                name: "And finally",
-                songs: [
-                    { name: "Un paarvayil", votes: 2 },
-                    { name: "En jannal vandha kaatre", votes: 3 },
-                    { name: "Munbe vaa", votes: 5 },
-                    { name: "Kangal irandal", votes: 4 },
-                    { name: "Banaras pottu katti", votes: 1 },
-                    { name: "Swasame", votes: 3 },
-                    { name: "Manmadha raasa", votes: 2 },
-                    { name: "Therathi vizhiyil devathai", votes: 4 }
-                ]
-            }
-        ];
-        
-        // Calculate statistics
-        let allSongs = [];
-        let totalVotes = 0;
-        
-        pollsData.forEach(poll => {
-            poll.songs.forEach(song => {
-                allSongs.push({
-                    ...song,
-                    poll: poll.name
+        function renderDashboard(pollsData) {
+            let allSongs = [];
+            let totalVotes = 0;
+
+            pollsData.forEach(poll => {
+                poll.songs.forEach(song => {
+                    allSongs.push({ ...song, poll: poll.name });
+                    totalVotes += song.votes;
                 });
-                totalVotes += song.votes;
             });
-        });
-        
-        allSongs.sort((a, b) => b.votes - a.votes);
-        
-        const totalSongs = allSongs.length;
-        const avgVotes = (totalVotes / totalSongs).toFixed(1);
-        const topSong = allSongs[0];
-        
-        // Update stats
-        document.getElementById('totalSongs').textContent = totalSongs;
-        document.getElementById('totalVotes').textContent = totalVotes;
-        document.getElementById('avgVotes').textContent = avgVotes;
-        document.getElementById('topSong').textContent = topSong.name;
-        document.getElementById('topSongVotes').textContent = `${topSong.votes} votes`;
-        
-        // Display top 10 songs
-        const topSongsList = document.getElementById('topSongsList');
-        allSongs.slice(0, 10).forEach((song, index) => {
-            const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
-            topSongsList.innerHTML += `
-                <div class="top-song-item">
-                    <span class="rank">${emoji}</span>
-                    <div class="song-details">
-                        <strong>${song.name}</strong>
-                        <small>${song.poll}</small>
-                    </div>
-                    <div class="vote-count">${song.votes}</div>
-                </div>
-            `;
-        });
-        
-        // Calculate insights
-        const pollVotesArray = pollsData.map(poll => ({
-            name: poll.name,
-            votes: poll.songs.reduce((sum, song) => sum + song.votes, 0)
-        }));
-        
-        const hottestPoll = pollVotesArray.reduce((max, poll) => poll.votes > max.votes ? poll : max);
-        const quietestPoll = pollVotesArray.reduce((min, poll) => poll.votes < min.votes ? poll : min);
-        
-        document.getElementById('hottestPoll').textContent = hottestPoll.name.length > 20 ? hottestPoll.name.substring(0, 20) + '...' : hottestPoll.name;
-        document.getElementById('hottestPollVotes').textContent = `${hottestPoll.votes} votes total`;
-        document.getElementById('quietestPoll').textContent = quietestPoll.name.length > 20 ? quietestPoll.name.substring(0, 20) + '...' : quietestPoll.name;
-        document.getElementById('quietestPollVotes').textContent = `${quietestPoll.votes} votes total`;
-        
-        const avgPollVotes = (totalVotes / pollsData.length).toFixed(1);
-        document.getElementById('participationRate').textContent = avgPollVotes;
-        
-        // Calculate competition level (variance in votes)
-        const voteVariance = allSongs.reduce((sum, song) => sum + Math.pow(song.votes - avgVotes, 2), 0) / allSongs.length;
-        const competitionLevel = voteVariance > 10 ? 'High 🔥' : voteVariance > 5 ? 'Medium 📈' : 'Low 😌';
-        document.getElementById('competitionLevel').textContent = competitionLevel;
-        
-        // Create voting distribution chart
-        const ctx1 = document.getElementById('votesChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: allSongs.slice(0, 15).map(s => s.name.length > 20 ? s.name.substring(0, 20) + '...' : s.name),
-                datasets: [{
-                    label: 'Votes',
-                    data: allSongs.slice(0, 15).map(s => s.votes),
-                    backgroundColor: allSongs.slice(0, 15).map((s, i) => {
-                        const colors = [
-                            'rgba(240, 147, 251, 0.8)',
-                            'rgba(245, 87, 108, 0.8)',
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(255, 107, 107, 0.8)'
-                        ];
-                        return colors[i % colors.length];
-                    }),
-                    borderColor: 'rgba(255, 255, 255, 0.8)',
-                    borderWidth: 2,
-                    borderRadius: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'Top 15 Songs by Votes',
-                        color: '#fff',
-                        font: {
-                            size: 18,
-                            weight: 'bold'
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            color: 'rgba(255, 255, 255, 0.8)'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45,
-                            color: 'rgba(255, 255, 255, 0.8)'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Create poll comparison chart
-        const ctx2 = document.getElementById('pollChart').getContext('2d');
-        const pollVotes = pollsData.map(poll => 
-            poll.songs.reduce((sum, song) => sum + song.votes, 0)
-        );
-        
-        new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: pollsData.map(p => p.name),
-                datasets: [{
-                    label: 'Total Votes per Poll',
-                    data: pollVotes,
-                    backgroundColor: 'rgba(240, 147, 251, 0.2)',
-                    borderColor: '#f093fb',
-                    borderWidth: 4,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#f5576c',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            color: '#fff',
-                            font: {
-                                size: 14
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.8)'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.8)'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Populate all songs table
-        const allSongsBody = document.getElementById('allSongsBody');
-        const maxVotes = Math.max(...allSongs.map(s => s.votes));
-        
-        allSongs.forEach(song => {
-            const percentage = maxVotes > 0 ? (song.votes / maxVotes) * 100 : 0;
-            allSongsBody.innerHTML += `
-                <tr>
-                    <td>${song.name}</td>
-                    <td><span class="poll-badge">${song.poll}</span></td>
-                    <td><strong>${song.votes}</strong></td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${percentage}%"></div>
+
+            allSongs.sort((a, b) => b.votes - a.votes);
+
+            const totalSongs = allSongs.length;
+            const avgVotes = (totalVotes / totalSongs).toFixed(1);
+            const topSong = allSongs[0];
+
+            document.getElementById('totalSongs').textContent = totalSongs;
+            document.getElementById('totalVotes').textContent = totalVotes;
+            document.getElementById('avgVotes').textContent = avgVotes;
+            document.getElementById('topSong').textContent = topSong.name;
+            document.getElementById('topSongVotes').textContent = `${topSong.votes} votes`;
+
+            const topSongsList = document.getElementById('topSongsList');
+            allSongs.slice(0, 10).forEach((song, index) => {
+                const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                topSongsList.innerHTML += `
+                    <div class="top-song-item">
+                        <span class="rank">${emoji}</span>
+                        <div class="song-details">
+                            <strong>${song.name}</strong>
+                            <small>${song.poll}</small>
                         </div>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        // Populate individual poll tabs
-        function populatePollTab(pollIndex, containerId) {
-            const container = document.getElementById(containerId);
-            const poll = pollsData[pollIndex];
-            
-            poll.songs.forEach(song => {
-                container.innerHTML += `
-                    <div class="song-item">
-                        <div class="song-name">${song.name}</div>
-                        <div class="song-votes">${song.votes} votes</div>
+                        <div class="vote-count">${song.votes}</div>
                     </div>
                 `;
             });
+
+            const pollVotesArray = pollsData.map(poll => ({
+                name: poll.name,
+                votes: poll.songs.reduce((sum, song) => sum + song.votes, 0)
+            }));
+
+            const hottestPoll = pollVotesArray.reduce((max, poll) => poll.votes > max.votes ? poll : max);
+            const quietestPoll = pollVotesArray.reduce((min, poll) => poll.votes < min.votes ? poll : min);
+
+            document.getElementById('hottestPoll').textContent = hottestPoll.name.length > 20 ? hottestPoll.name.substring(0, 20) + '...' : hottestPoll.name;
+            document.getElementById('hottestPollVotes').textContent = `${hottestPoll.votes} votes total`;
+            document.getElementById('quietestPoll').textContent = quietestPoll.name.length > 20 ? quietestPoll.name.substring(0, 20) + '...' : quietestPoll.name;
+            document.getElementById('quietestPollVotes').textContent = `${quietestPoll.votes} votes total`;
+
+            const avgPollVotes = (totalVotes / pollsData.length).toFixed(1);
+            document.getElementById('participationRate').textContent = avgPollVotes;
+
+            const voteVariance = allSongs.reduce((sum, song) => sum + Math.pow(song.votes - avgVotes, 2), 0) / allSongs.length;
+            const competitionLevel = voteVariance > 10 ? 'High 🔥' : voteVariance > 5 ? 'Medium 📈' : 'Low 😌';
+            document.getElementById('competitionLevel').textContent = competitionLevel;
+
+            const ctx1 = document.getElementById('votesChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: allSongs.slice(0, 15).map(s => s.name.length > 20 ? s.name.substring(0, 20) + '...' : s.name),
+                    datasets: [{
+                        label: 'Votes',
+                        data: allSongs.slice(0, 15).map(s => s.votes),
+                        backgroundColor: allSongs.slice(0, 15).map((s, i) => {
+                            const colors = ['rgba(240,147,251,0.8)', 'rgba(245,87,108,0.8)', 'rgba(102,126,234,0.8)', 'rgba(255,107,107,0.8)'];
+                            return colors[i % colors.length];
+                        }),
+                        borderColor: 'rgba(255,255,255,0.8)',
+                        borderWidth: 2,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, title: { display: true, text: 'Top 15 Songs by Votes', color: '#fff', font: { size: 18, weight: 'bold' } } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: 'rgba(255,255,255,0.8)' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { maxRotation: 45, minRotation: 45, color: 'rgba(255,255,255,0.8)' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('pollChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: pollsData.map(p => p.name),
+                    datasets: [{
+                        label: 'Total Votes per Poll',
+                        data: pollsData.map(poll => poll.songs.reduce((sum, song) => sum + song.votes, 0)),
+                        backgroundColor: 'rgba(240,147,251,0.2)', borderColor: '#f093fb', borderWidth: 4,
+                        fill: true, tension: 0.4, pointBackgroundColor: '#f5576c', pointBorderColor: '#fff',
+                        pointBorderWidth: 3, pointRadius: 6, pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#fff', font: { size: 14 } } } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.8)' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: 'rgba(255,255,255,0.8)' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
+
+            const allSongsBody = document.getElementById('allSongsBody');
+            const maxVotes = Math.max(...allSongs.map(s => s.votes));
+            allSongs.forEach(song => {
+                const percentage = maxVotes > 0 ? (song.votes / maxVotes) * 100 : 0;
+                allSongsBody.innerHTML += `
+                    <tr>
+                        <td>${song.name}</td>
+                        <td><span class="poll-badge">${song.poll}</span></td>
+                        <td><strong>${song.votes}</strong></td>
+                        <td><div class="progress-bar"><div class="progress-fill" style="width:${percentage}%"></div></div></td>
+                    </tr>
+                `;
+            });
+
+            const tabContainers = ['bestjamSongs', 'poll1Songs', 'poll3Songs', 'poll4Songs', 'poll5Songs', 'poll6Songs', 'finalSongs'];
+            pollsData.forEach((poll, i) => {
+                const container = document.getElementById(tabContainers[i]);
+                if (!container) return;
+                poll.songs.forEach(song => {
+                    container.innerHTML += `
+                        <div class="song-item">
+                            <div class="song-name">${song.name}</div>
+                            <div class="song-votes">${song.votes} votes</div>
+                        </div>
+                    `;
+                });
+            });
         }
-        
-        populatePollTab(0, 'bestjamSongs');
-        populatePollTab(1, 'poll1Songs');
-        populatePollTab(2, 'poll3Songs');
-        populatePollTab(3, 'poll4Songs');
-        populatePollTab(4, 'poll5Songs');
-        populatePollTab(5, 'poll6Songs');
-        populatePollTab(6, 'finalSongs');
-        
-        // Tab switching function
+
         function showTab(tabName) {
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            contents.forEach(content => content.classList.remove('active'));
-            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById(tabName).classList.add('active');
         }
+
+        fetch('polls-data.json?t=' + Date.now())
+            .then(r => r.json())
+            .then(data => renderDashboard(data))
+            .catch(err => console.error('Failed to load poll data:', err));
     </script>
 </body>
 </html>
