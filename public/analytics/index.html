@@ -608,14 +608,6 @@
         </div>
         
         <div class="chart-section">
-            <h2>🙋 Most Active Voters</h2>
-            <div class="chart-container">
-                <canvas id="pollChart"></canvas>
-            </div>
-            <p id="voterNote" style="text-align:center;color:rgba(255,255,255,0.4);font-size:0.85em;margin-top:12px;display:none;">Voter data syncs automatically on the next WhatsApp check.</p>
-        </div>
-        
-        <div class="chart-section">
             <h2>🎵 All Songs</h2>
             <div class="tabs">
                 <button class="tab active" onclick="showTab('all')">All Songs</button>
@@ -673,7 +665,7 @@
     </div>
     
     <script>
-        function renderDashboard(pollsData, voters = []) {
+        function renderDashboard(pollsData) {
             let allSongs = [];
             let totalVotes = 0;
 
@@ -758,44 +750,6 @@
                 }
             });
 
-            const ctx2 = document.getElementById('pollChart').getContext('2d');
-            const votersList = voters || [];
-            const voterNote = document.getElementById('voterNote');
-            if (votersList.length === 0) {
-                voterNote.style.display = 'block';
-                new Chart(ctx2, {
-                    type: 'bar',
-                    data: { labels: ['No voter data yet'], datasets: [{ data: [0], backgroundColor: 'rgba(240,147,251,0.3)' }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Voter data will appear after next sync', color: 'rgba(255,255,255,0.5)', font: { size: 16 } } }, scales: { y: { display: false }, x: { ticks: { color: 'rgba(255,255,255,0.5)' }, grid: { display: false } } } }
-                });
-            } else {
-                const sorted = [...votersList].sort((a, b) => b.votes - a.votes);
-                const colors = ['rgba(240,147,251,0.85)','rgba(245,87,108,0.85)','rgba(102,126,234,0.85)','rgba(255,107,107,0.85)','rgba(79,209,197,0.85)','rgba(255,200,100,0.85)'];
-                new Chart(ctx2, {
-                    type: 'bar',
-                    data: {
-                        labels: sorted.map(v => v.name),
-                        datasets: [{
-                            label: 'Total Votes Cast',
-                            data: sorted.map(v => v.votes),
-                            backgroundColor: sorted.map((_, i) => colors[i % colors.length]),
-                            borderColor: 'rgba(255,255,255,0.6)',
-                            borderWidth: 2,
-                            borderRadius: 8
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        plugins: { legend: { display: false }, title: { display: true, text: 'Who Voted Most Across All Polls', color: '#fff', font: { size: 16, weight: 'bold' } } },
-                        scales: {
-                            x: { beginAtZero: true, ticks: { stepSize: 1, color: 'rgba(255,255,255,0.8)' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                            y: { ticks: { color: 'rgba(255,255,255,0.9)', font: { size: 13 } }, grid: { display: false } }
-                        }
-                    }
-                });
-            }
-
             const allSongsBody = document.getElementById('allSongsBody');
             const maxVotes = Math.max(...allSongs.map(s => s.votes));
             allSongs.forEach(song => {
@@ -836,8 +790,7 @@
             .then(r => r.json())
             .then(data => {
                 const polls = Array.isArray(data) ? data : (data.polls || []);
-                const voters = Array.isArray(data) ? [] : (data.voters || []);
-                renderDashboard(polls, voters);
+                renderDashboard(polls);
             })
             .catch(err => console.error('Failed to load poll data:', err));
     </script>
