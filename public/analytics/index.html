@@ -816,7 +816,7 @@
             document.getElementById(tabName).classList.add('active');
         }
 
-        fetch('polls-data.json?t=' + Date.now())
+        fetch('/analytics/polls-data.json?t=' + Date.now())
             .then(r => r.json())
             .then(data => renderDashboard(data))
             .catch(err => console.error('Failed to load poll data:', err));
