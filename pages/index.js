@@ -222,6 +222,7 @@ export default function Home() {
 
       <footer>
         <p>Tamil Lyrics Archive · தமிழ் பாடல் தொகுப்பு</p>
+        <p style={{marginTop:'0.5rem'}}><a href="/analytics/" style={{color:'var(--gold)',textDecoration:'none',fontWeight:500}}>🎤 Voting Analytics</a></p>
       </footer>
     </>
   );
