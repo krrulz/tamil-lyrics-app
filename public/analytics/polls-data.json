@@ -1,4 +1,6 @@
-[
+{
+  "voters": [],
+  "polls": [
   {
     "name": "Best song to jam ❤️",
     "songs": [
@@ -114,4 +116,5 @@
       { "name": "Therathi vizhiyil devathai", "votes": 4 }
     ]
   }
-]
+  ]
+}
