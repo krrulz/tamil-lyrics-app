@@ -21,14 +21,23 @@ export default function AdminSuggestions() {
   const load = async () => {
     if (!auth) return;
     setFetching(true);
-    const [sugRes, plRes] = await Promise.all([
-      apiFetch(`/api/suggestions?status=${filter}`),
-      apiFetch('/api/admin/playlists'),
-    ]);
-    const [sugData, plData] = await Promise.all([sugRes.json(), plRes.json()]);
-    setSuggestions(sugData.suggestions || []);
-    setPlaylists(plData.playlists || []);
-    setFetching(false);
+    try {
+      const [sugRes, plRes] = await Promise.all([
+        apiFetch(`/api/suggestions?status=${filter}`),
+        apiFetch('/api/admin/playlists'),
+      ]);
+      const [sugData, plData] = await Promise.all([
+        sugRes.ok ? sugRes.json() : Promise.resolve({ suggestions: [] }),
+        plRes.ok  ? plRes.json()  : Promise.resolve({ playlists: [] }),
+      ]);
+      if (!sugRes.ok) showToast(`⚠ API error ${sugRes.status} — check Vercel env vars`);
+      setSuggestions(sugData.suggestions || []);
+      setPlaylists(plData.playlists || []);
+    } catch (err) {
+      showToast('⚠ Failed to load: ' + err.message);
+    } finally {
+      setFetching(false);
+    }
   };
 
   useEffect(() => { load(); }, [auth, filter]);
@@ -37,11 +46,17 @@ export default function AdminSuggestions() {
 
   const doAction = async (id, action, extra = {}) => {
     setActionId(id);
-    const res = await apiFetch(`/api/suggestions/${id}`, { method: 'PATCH', body: JSON.stringify({ action, ...extra }) });
-    const data = await res.json();
-    if (res.ok) { showToast(action === 'approve' ? `✓ Approved! Tamil: ${data.tamilFound ? '✓' : '✗'} EN: ${data.englishFound ? '✓' : '✗'}` : `✓ Done`); load(); }
-    else showToast('⚠ ' + data.error);
-    setActionId(null);
+    try {
+      const res = await apiFetch(`/api/suggestions/${id}`, { method: 'PATCH', body: JSON.stringify({ action, ...extra }) });
+      const text = await res.text();
+      const data = (() => { try { return JSON.parse(text); } catch { return {}; } })();
+      if (res.ok) { showToast(action === 'approve' ? `✓ Approved! Tamil: ${data.tamilFound ? '✓' : '✗'} EN: ${data.englishFound ? '✓' : '✗'}` : `✓ Done`); load(); }
+      else showToast('⚠ ' + (data.error || `Error ${res.status}`));
+    } catch (err) {
+      showToast('⚠ ' + err.message);
+    } finally {
+      setActionId(null);
+    }
   };
 
   const statusColors = { pending: '#FBBF24', approved: '#34D399', rejected: '#FC8181' };
