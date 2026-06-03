@@ -1,7 +1,6 @@
 // pages/api/admin/analytics.js
 import { fdb, db } from '../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../lib/firebaseAdmin.js';
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
   const user = await requireAdmin(req, res);

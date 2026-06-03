@@ -1,7 +1,6 @@
 // pages/api/admin/playlists.js
 import { db } from '../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../lib/firebaseAdmin.js';
-
 function toSlug(name) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }

@@ -1,7 +1,6 @@
 // pages/api/polls/index.js
 import { fdb } from '../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../lib/firebaseAdmin.js';
-
 export default async function handler(req, res) {
   try {
   if (req.method === 'POST') {

@@ -2,7 +2,6 @@
 import { db } from '../../../lib/firebase';
 import { scrapeBothLyricsOptimised } from '../../../lib/scraper';
 import { fillMissingLyrics } from '../../../lib/transliterate';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 

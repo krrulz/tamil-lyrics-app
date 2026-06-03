@@ -3,7 +3,6 @@ import { fdb } from '../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../lib/firebaseAdmin.js';
 import { scrapeBothLyricsOptimised } from '../../../lib/scraper.js';
 import { fillMissingLyrics } from '../../../lib/transliterate.js';
-
 export default async function handler(req, res) {
   try {
   // ── POST: public submission ────────────────────────────────────────────────
