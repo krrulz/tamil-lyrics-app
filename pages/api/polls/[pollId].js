@@ -1,9 +1,9 @@
 // pages/api/polls/[pollId].js
 import { fdb } from '../../../lib/firebaseDb.js';
-import { db } from '../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../lib/firebaseAdmin.js';
 
 export default async function handler(req, res) {
+  try {
   const { pollId } = req.query;
 
   // ── GET: public — fetch poll + song names ──────────────────────────────────
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     // Enrich songs with names from songs collection
     const enriched = await Promise.all(
       (poll.songs || []).map(async s => {
-        const songDoc = await db.collection('songs').doc(s.songId).get();
+        const songDoc = await fdb.collection('songs').doc(s.songId).get();
         return {
           songId: s.songId,
           votes: s.votes || 0,
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     const poll = pollDoc.data();
 
     // Push vote counts back to playlist songs array
-    const playlistDoc = await db.collection('playlists').doc(poll.playlistId).get();
+    const playlistDoc = await fdb.collection('playlists').doc(poll.playlistId).get();
     if (playlistDoc.exists) {
       const existing = playlistDoc.data().songs || [];
       const voteMap = {};
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       // Re-sort by votes descending
       updated.sort((a, b) => (b.votes || 0) - (a.votes || 0));
       updated.forEach((s, i) => { s.order = i; });
-      await db.collection('playlists').doc(poll.playlistId).update({ songs: updated });
+      await fdb.collection('playlists').doc(poll.playlistId).update({ songs: updated });
     }
 
     await fdb.collection('polls').doc(pollId).update({ status: 'closed', closedAt: new Date().toISOString() });
@@ -69,4 +69,8 @@ export default async function handler(req, res) {
   }
 
   res.status(405).end();
+  } catch (err) {
+    console.error('[/api/polls/[pollId]]', err);
+    res.status(500).json({ error: err.message });
+  }
 }

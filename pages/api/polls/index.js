@@ -1,8 +1,9 @@
 // pages/api/polls/index.js
-import { fdb, db } from '../../../lib/firebaseDb.js';
+import { fdb } from '../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../lib/firebaseAdmin.js';
 
 export default async function handler(req, res) {
+  try {
   if (req.method === 'POST') {
     const user = await requireAdmin(req, res);
     if (!user) return;
@@ -10,7 +11,7 @@ export default async function handler(req, res) {
     const { playlistId, title, description, expiresAt } = req.body || {};
     if (!playlistId) return res.status(400).json({ error: 'playlistId required' });
 
-    const playlistDoc = await db.collection('playlists').doc(playlistId).get();
+    const playlistDoc = await fdb.collection('playlists').doc(playlistId).get();
     if (!playlistDoc.exists) return res.status(404).json({ error: 'Playlist not found' });
 
     const songs = (playlistDoc.data().songs || []).map(s =>
@@ -45,4 +46,8 @@ export default async function handler(req, res) {
   }
 
   res.status(405).end();
+  } catch (err) {
+    console.error('[/api/polls]', err);
+    res.status(500).json({ error: err.message });
+  }
 }
