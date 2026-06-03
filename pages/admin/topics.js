@@ -18,6 +18,10 @@ export default function AdminTopics() {
   const [dragIdx, setDragIdx] = useState(null);
   const [actionId, setActionId] = useState(null);
   const [toast, setToast] = useState('');
+  const [songQuery, setSongQuery] = useState('');
+  const [songResults, setSongResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimer = useRef(null);
 
   useEffect(() => { if (!loading && !auth) router.replace('/admin/login'); }, [auth, loading]);
 
@@ -71,6 +75,27 @@ export default function AdminTopics() {
 
   const removeSong = (songId) => {
     setEditing(prev => ({ ...prev, songs: prev.songs.filter(s => s.songId !== songId).map((s, i) => ({ ...s, order: i })) }));
+  };
+
+  const addSong = (song) => {
+    setEditing(prev => {
+      if (prev.songs.some(s => s.songId === song.id)) return prev;
+      return { ...prev, songs: [...prev.songs, { songId: song.id, name: song.name, movie: song.movie, order: prev.songs.length }] };
+    });
+    setSongQuery(''); setSongResults([]);
+  };
+
+  const onSongQueryChange = (val) => {
+    setSongQuery(val);
+    clearTimeout(searchTimer.current);
+    if (!val.trim()) { setSongResults([]); return; }
+    setSearching(true);
+    searchTimer.current = setTimeout(async () => {
+      const res = await apiFetch(`/api/songs?q=${encodeURIComponent(val)}&limit=8`);
+      const data = await res.json();
+      setSongResults(data.songs || []);
+      setSearching(false);
+    }, 300);
   };
 
   // Drag-to-reorder
@@ -132,6 +157,16 @@ export default function AdminTopics() {
         .save-row { display: flex; gap: 8px; margin-top: 1rem; }
         .save-btn { padding: 0.55rem 1.25rem; background: var(--admin-accent); color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
         .close-btn { padding: 0.55rem 1rem; background: none; border: 1px solid var(--admin-border); color: var(--admin-muted); border-radius: 8px; font-size: 0.88rem; cursor: pointer; }
+        .add-song-box { position: relative; margin-bottom: 1rem; }
+        .add-song-input { width: 100%; padding: 0.55rem 0.8rem; background: rgba(255,255,255,0.06); border: 1px solid var(--admin-accent); border-radius: 6px; color: var(--admin-text); font-size: 0.85rem; outline: none; }
+        .add-song-input::placeholder { color: var(--admin-muted); }
+        .song-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 6px; z-index: 10; max-height: 220px; overflow-y: auto; margin-top: 2px; }
+        .song-result-item { padding: 0.5rem 0.8rem; cursor: pointer; border-bottom: 1px solid var(--admin-border); }
+        .song-result-item:last-child { border-bottom: none; }
+        .song-result-item:hover { background: rgba(108,142,255,0.15); }
+        .result-name { font-size: 0.85rem; color: var(--admin-text); }
+        .result-movie { font-size: 0.72rem; color: var(--admin-muted); }
+        .already-added { opacity: 0.4; cursor: not-allowed; }
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
         .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; }
       `}</style>
@@ -176,6 +211,33 @@ export default function AdminTopics() {
           <div className="editor">
             <h2>Editing: {editing.name}</h2>
             <p className="editor-hint">Drag to reorder · Click × to remove · Top 25 will show publicly</p>
+            <div className="add-song-box">
+              <input
+                className="add-song-input"
+                placeholder="🔍 Search songs to add…"
+                value={songQuery}
+                onChange={e => onSongQueryChange(e.target.value)}
+                onBlur={() => setTimeout(() => setSongResults([]), 200)}
+              />
+              {(songResults.length > 0 || searching) && (
+                <div className="song-results">
+                  {searching && <div className="song-result-item" style={{color:'var(--admin-muted)'}}>Searching…</div>}
+                  {songResults.map(song => {
+                    const already = editing.songs.some(s => s.songId === song.id);
+                    return (
+                      <div
+                        key={song.id}
+                        className={`song-result-item${already ? ' already-added' : ''}`}
+                        onMouseDown={() => !already && addSong(song)}
+                      >
+                        <div className="result-name">{song.name} {already ? '✓' : '+'}</div>
+                        {song.movie && <div className="result-movie">{song.movie}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             {editing.songs.map((song, idx) => (
               <div
                 key={song.songId}
