@@ -160,7 +160,7 @@ export default function AdminTopics() {
               </div>
               <div>
                 <label>Max songs (top by votes)</label>
-                <input type="number" min="1" max="50" value={form.limit} onChange={e => setForm(p => ({ ...p, limit: parseInt(e.target.value) || 25 })} />
+                <input type="number" min="1" max="50" value={form.limit} onChange={e => setForm(p => ({ ...p, limit: parseInt(e.target.value) || 25 }))} />
               </div>
             </div>
             <div className="btn-row">
