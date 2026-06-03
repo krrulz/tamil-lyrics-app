@@ -92,7 +92,7 @@ export default function AdminSuggestions() {
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
         .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; white-space: nowrap; }
       `}</style>
-      <div className="wrap">
+      <div className="wrap" suppressHydrationWarning>
         {toast && <div className="toast">{toast}</div>}
         <div className="topbar">
           <h1>💡 Song Suggestions</h1>

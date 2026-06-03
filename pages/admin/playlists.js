@@ -28,18 +28,30 @@ export default function AdminPlaylists() {
 
   const load = async () => {
     if (!auth) return;
-    const res = await apiFetch('/api/admin/playlists');
-    const data = await res.json();
-    setPlaylists(data.playlists || []);
-    setFetching(false);
+    try {
+      const res = await apiFetch('/api/admin/playlists');
+      const text = await res.text();
+      const data = (() => { try { return JSON.parse(text); } catch { return {}; } })();
+      if (!res.ok) { showToast(`⚠ API error ${res.status} — check Vercel env vars`); setFetching(false); return; }
+      setPlaylists(data.playlists || []);
+    } catch (err) {
+      showToast('⚠ Failed to load: ' + err.message);
+    } finally {
+      setFetching(false);
+    }
   };
 
   useEffect(() => { load(); }, [auth]);
 
   const loadDetail = async (id) => {
-    const res = await apiFetch(`/api/admin/playlists/${id}`);
-    const data = await res.json();
-    setPlaylistDetail(prev => ({ ...prev, [id]: data }));
+    try {
+      const res = await apiFetch(`/api/admin/playlists/${id}`);
+      const text = await res.text();
+      const data = (() => { try { return JSON.parse(text); } catch { return {}; } })();
+      setPlaylistDetail(prev => ({ ...prev, [id]: data }));
+    } catch (err) {
+      showToast('⚠ ' + err.message);
+    }
   };
 
   const toggleExpand = async (id) => {
@@ -162,7 +174,7 @@ export default function AdminPlaylists() {
         .loading-msg { color: var(--admin-muted); font-size: 0.82rem; padding: 0.5rem 0; }
         .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; }
       `}</style>
-      <div className="wrap">
+      <div className="wrap" suppressHydrationWarning>
         {toast && <div className="toast">{toast}</div>}
         <div className="topbar">
           <h1>🎶 Playlists</h1>
