@@ -5,6 +5,7 @@ import { scrapeBothLyricsOptimised } from '../../../lib/scraper.js';
 import { fillMissingLyrics } from '../../../lib/transliterate.js';
 
 export default async function handler(req, res) {
+  try {
   // ── POST: public submission ────────────────────────────────────────────────
   if (req.method === 'POST') {
     const { songName, movie, reason, submittedBy } = req.body || {};
@@ -46,4 +47,8 @@ export default async function handler(req, res) {
   }
 
   res.status(405).end();
+  } catch (err) {
+    console.error('[/api/suggestions] error:', err);
+    res.status(500).json({ error: err.message, stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined });
+  }
 }

@@ -7,6 +7,7 @@ function toSlug(name) {
 }
 
 export default async function handler(req, res) {
+  try {
   const user = await requireAdmin(req, res);
   if (!user) return;
 
@@ -28,4 +29,8 @@ export default async function handler(req, res) {
   }
 
   res.status(405).end();
+  } catch (err) {
+    console.error('[/api/admin/playlists] error:', err);
+    res.status(500).json({ error: err.message });
+  }
 }
