@@ -3,6 +3,7 @@ import { db } from '../../../../lib/firebaseDb.js';
 import { requireAdmin } from '../../../../lib/firebaseAdmin.js';
 
 export default async function handler(req, res) {
+  try {
   const user = await requireAdmin(req, res);
   if (!user) return;
 
@@ -36,4 +37,8 @@ export default async function handler(req, res) {
   }
 
   res.status(405).end();
+  } catch (err) {
+    console.error('[/api/admin/topics/[id]]', err);
+    res.status(500).json({ error: err.message });
+  }
 }
