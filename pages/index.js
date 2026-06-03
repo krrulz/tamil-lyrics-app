@@ -125,7 +125,6 @@ export default function Home() {
       <footer>
         <div className="footer-links">
           <Link href="/suggest" className="footer-link">🎵 Suggest a song</Link>
-          <Link href="/analytics/" className="footer-link">🎤 Voting Analytics</Link>
           <Link href="/admin" className="footer-link">⚙ Admin</Link>
         </div>
         <p style={{marginTop:'0.75rem'}}>Tamil Lyrics Archive · தமிழ் பாடல் தொகுப்பு</p>
