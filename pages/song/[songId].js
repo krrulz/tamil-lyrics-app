@@ -268,7 +268,7 @@ export default function SongPage() {
       `}</style>
 
       <div className="topbar">
-        <Link href="/" className="back-btn">← Home</Link>
+        <button className="back-btn" onClick={() => router.back()} style={{background:'none',border:'none',cursor:'pointer'}}>← Back</button>
       </div>
 
       <main className="container">
