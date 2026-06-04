@@ -60,6 +60,12 @@ export default function AdminPolls() {
     setTimeout(() => setCopied(''), 2000);
   };
 
+  const shareWhatsApp = (poll) => {
+    const url = `${window.location.origin}/vote/${poll.id}`;
+    const msg = `🗳️ *${poll.title || 'Vote for your favourite songs!'}*\n${poll.description ? poll.description + '\n' : ''}\n🎵 Cast your vote here:\n${url}\n\n_Tamil Musical Jam 🎤🎶_`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   if (loading || !auth) return null;
 
   return (
@@ -95,6 +101,7 @@ export default function AdminPolls() {
         .btn { padding: 0.35rem 0.85rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1px solid; display: flex; align-items: center; gap: 5px; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-copy { background: transparent; color: var(--admin-accent); border-color: var(--admin-accent); }
+        .btn-wa { background: rgba(37,211,102,0.12); color: #25D366; border-color: #25D366; }
         .btn-view { background: transparent; color: var(--admin-muted); border-color: var(--admin-border); text-decoration: none; }
         .btn-close { background: rgba(251,191,36,0.1); color: var(--warn); border-color: var(--warn); }
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
@@ -166,7 +173,10 @@ export default function AdminPolls() {
 
               <div className="actions">
                 <button className="btn btn-copy" onClick={() => copyLink(poll.id)}>
-                  {copied === poll.id ? '✓ Copied!' : '🔗 Copy vote link'}
+                  {copied === poll.id ? '✓ Copied!' : '🔗 Copy link'}
+                </button>
+                <button className="btn btn-wa" onClick={() => shareWhatsApp(poll)}>
+                  📲 Share to WhatsApp
                 </button>
                 <Link href={`/vote/${poll.id}`} target="_blank" className="btn btn-view">Preview →</Link>
                 {poll.status === 'active' && (
