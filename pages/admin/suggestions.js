@@ -15,6 +15,9 @@ export default function AdminSuggestions() {
   const [selectedPlaylist, setSelectedPlaylist] = useState({});
   const [filter, setFilter] = useState('pending');
   const [toast, setToast] = useState('');
+  const [showManualAdd, setShowManualAdd] = useState(false);
+  const [manualForm, setManualForm] = useState({ name: '', movie: '', tamil: '', english: '', playlistId: '' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => { if (!loading && !auth) router.replace('/admin/login'); }, [auth, loading]);
 
@@ -61,6 +64,37 @@ export default function AdminSuggestions() {
 
   const statusColors = { pending: '#FBBF24', approved: '#34D399', rejected: '#FC8181' };
 
+  const saveManualSong = async () => {
+    if (!manualForm.name.trim()) { showToast('⚠ Song name is required'); return; }
+    if (!manualForm.playlistId) { showToast('⚠ Please select a playlist'); return; }
+    setSaving(true);
+    try {
+      const res = await apiFetch('/api/admin/add-song', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: manualForm.name,
+          movie: manualForm.movie,
+          tamilLyrics: manualForm.tamil,
+          englishLyrics: manualForm.english,
+          playlistId: manualForm.playlistId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('✓ Song added to playlist');
+        setShowManualAdd(false);
+        setManualForm({ name: '', movie: '', tamil: '', english: '', playlistId: '' });
+        load();
+      } else {
+        showToast('⚠ ' + (data.error || `Error ${res.status}`));
+      }
+    } catch (err) {
+      showToast('⚠ ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading || !auth) return null;
 
   return (
@@ -91,13 +125,57 @@ export default function AdminSuggestions() {
         .btn-reject { background: rgba(252,129,129,0.1); color: var(--error); border: 1px solid var(--error); }
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
         .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; white-space: nowrap; }
+        .btn-add-song { background: rgba(52,211,153,0.12); color: #34D399; border: 1px solid #34D399; }
+        .manual-panel { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .manual-panel h2 { font-size: 1rem; font-weight: 600; color: var(--admin-text); margin-bottom: 1rem; }
+        .manual-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0.9rem; }
+        .manual-label { font-size: 0.78rem; color: var(--admin-muted); font-weight: 500; }
+        .manual-input { padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); font-size: 0.88rem; outline: none; width: 100%; font-family: inherit; }
+        .manual-input:focus { border-color: var(--admin-accent); }
+        .manual-textarea { min-height: 80px; resize: vertical; }
+        .manual-actions { display: flex; gap: 8px; margin-top: 0.5rem; }
       `}</style>
       <div className="wrap" suppressHydrationWarning>
         {toast && <div className="toast">{toast}</div>}
         <div className="topbar">
           <h1>💡 Song Suggestions</h1>
-          <Link href="/admin" className="back">← Dashboard</Link>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button className="btn btn-add-song" onClick={() => setShowManualAdd(v => !v)}>➕ Add Song Manually</button>
+            <Link href="/admin" className="back">← Dashboard</Link>
+          </div>
         </div>
+        {showManualAdd && (
+          <div className="manual-panel">
+            <h2>Add Song Manually</h2>
+            <div className="manual-row">
+              <label className="manual-label">Song Name *</label>
+              <input className="manual-input" value={manualForm.name} onChange={e => setManualForm(f => ({ ...f, name: e.target.value }))} placeholder="Enter song name" />
+            </div>
+            <div className="manual-row">
+              <label className="manual-label">Movie / Album</label>
+              <input className="manual-input" value={manualForm.movie} onChange={e => setManualForm(f => ({ ...f, movie: e.target.value }))} placeholder="Optional" />
+            </div>
+            <div className="manual-row">
+              <label className="manual-label">Tamil Lyrics</label>
+              <textarea className="manual-input manual-textarea" value={manualForm.tamil} onChange={e => setManualForm(f => ({ ...f, tamil: e.target.value }))} placeholder="Paste Tamil lyrics (optional)" />
+            </div>
+            <div className="manual-row">
+              <label className="manual-label">English Lyrics</label>
+              <textarea className="manual-input manual-textarea" value={manualForm.english} onChange={e => setManualForm(f => ({ ...f, english: e.target.value }))} placeholder="Paste English lyrics (optional)" />
+            </div>
+            <div className="manual-row">
+              <label className="manual-label">Playlist *</label>
+              <select className="manual-input" value={manualForm.playlistId} onChange={e => setManualForm(f => ({ ...f, playlistId: e.target.value }))}>
+                <option value="">— Select playlist —</option>
+                {playlists.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div className="manual-actions">
+              <button className="btn btn-approve" disabled={saving} onClick={saveManualSong}>{saving ? 'Saving…' : '✓ Save Song'}</button>
+              <button className="btn btn-reject" onClick={() => { setShowManualAdd(false); setManualForm({ name: '', movie: '', tamil: '', english: '', playlistId: '' }); }}>Cancel</button>
+            </div>
+          </div>
+        )}
         <div className="filters">
           {['pending', 'approved', 'rejected'].map(f => (
             <button key={f} className={`ftab ${filter === f ? 'ftab-active' : 'ftab-inactive'}`} onClick={() => setFilter(f)}>

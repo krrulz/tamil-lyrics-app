@@ -9,6 +9,7 @@ export default function TopicPage() {
   const { topicId } = router.query;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [songFilter, setSongFilter] = useState('');
 
   useEffect(() => {
     if (!topicId) return;
@@ -66,6 +67,11 @@ export default function TopicPage() {
         .loading { text-align: center; padding: 4rem 1rem; color: var(--text-muted); font-style: italic; }
         .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
         @media (max-width: 480px) { .song-arrow { display: none; } }
+        .filter-wrap { position: relative; margin-bottom: 1.25rem; }
+        .filter-input { width: 100%; padding: 0.55rem 2.2rem 0.55rem 0.9rem; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--deep); font-size: 0.88rem; outline: none; font-family: inherit; transition: border-color 0.15s; }
+        .filter-input:focus { border-color: var(--gold); }
+        .filter-clear { position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem; line-height: 1; padding: 0; }
+        .filter-count { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem; }
       `}</style>
 
       <div className="topbar">
@@ -83,21 +89,49 @@ export default function TopicPage() {
             </div>
             <p className="page-subtitle">{data.songs.length} song{data.songs.length !== 1 ? 's' : ''} in this collection</p>
 
-            <hr className="divider" />
-            {data.songs.length === 0 && <div className="empty">No songs yet.</div>}
-            <div className="songs-list">
-              {data.songs.map(song => (
-                <Link key={song.id} href={`/song/${song.id}`} className="song-item">
-                  <div className="song-name">{song.name}</div>
-                  {song.movie && <div className="song-movie">🎬 {song.movie}</div>}
-                  <div className="song-badges">
-                    {song.tamilAvailable ? <span className="badge badge-ta">தமிழ் ✓</span> : <span className="badge badge-na">தமிழ் —</span>}
-                    {song.englishAvailable ? <span className="badge badge-en">English ✓</span> : <span className="badge badge-na">English —</span>}
-                  </div>
-                  <span className="song-arrow">→</span>
-                </Link>
-              ))}
+            <div className="filter-wrap">
+              <input
+                className="filter-input"
+                type="text"
+                placeholder="Search in this collection…"
+                value={songFilter}
+                onChange={e => setSongFilter(e.target.value)}
+              />
+              {songFilter && (
+                <button className="filter-clear" onClick={() => setSongFilter('')} aria-label="Clear search">×</button>
+              )}
             </div>
+
+            {(() => {
+              const filtered = songFilter.trim()
+                ? data.songs.filter(s =>
+                    s.name.toLowerCase().includes(songFilter.toLowerCase()) ||
+                    (s.movie || '').toLowerCase().includes(songFilter.toLowerCase())
+                  )
+                : data.songs;
+              return (
+                <>
+                  {songFilter.trim() && (
+                    <p className="filter-count">{filtered.length} of {data.songs.length} songs match</p>
+                  )}
+                  <hr className="divider" />
+                  {filtered.length === 0 && <div className="empty">No songs match your search.</div>}
+                  <div className="songs-list">
+                    {filtered.map(song => (
+                      <Link key={song.id} href={`/song/${song.id}`} className="song-item">
+                        <div className="song-name">{song.name}</div>
+                        {song.movie && <div className="song-movie">🎬 {song.movie}</div>}
+                        <div className="song-badges">
+                          {song.tamilAvailable ? <span className="badge badge-ta">தமிழ் ✓</span> : <span className="badge badge-na">தமிழ் —</span>}
+                          {song.englishAvailable ? <span className="badge badge-en">English ✓</span> : <span className="badge badge-na">English —</span>}
+                        </div>
+                        <span className="song-arrow">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </>
         )}
         {!loading && !data && <div className="empty">Topic not found.</div>}

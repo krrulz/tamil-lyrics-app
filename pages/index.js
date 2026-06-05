@@ -1,11 +1,15 @@
 /* pages/index.js - End User Portal */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
 export default function Home() {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimer = useRef(null);
 
   useEffect(() => {
     fetch('/api/topics')
@@ -13,6 +17,20 @@ export default function Home() {
       .then(d => { setTopics(d.topics || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const handleSearchChange = (e) => {
+    const q = e.target.value;
+    setSearchQuery(q);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (!q.trim()) { setSearchResults([]); setSearching(false); return; }
+    setSearching(true);
+    searchTimer.current = setTimeout(() => {
+      fetch(`/api/songs?q=${encodeURIComponent(q)}&limit=12`)
+        .then(r => r.json())
+        .then(d => { setSearchResults(d.songs || []); setSearching(false); })
+        .catch(() => setSearching(false));
+    }, 300);
+  };
 
   return (
     <>
@@ -80,6 +98,17 @@ export default function Home() {
         .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
         .loading { text-align: center; padding: 4rem 1rem; color: var(--text-muted); font-style: italic; }
         footer { text-align: center; padding: 1.5rem; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); }
+        .search-wrap { display: flex; justify-content: center; margin: 0.5rem 0 1.5rem; }
+        .search-input-row { position: relative; width: 100%; max-width: 500px; }
+        .search-input { width: 100%; padding: 0.65rem 1.1rem 0.65rem 2.5rem; border-radius: 30px; border: 1px solid var(--border); background: var(--card-bg); color: var(--deep); font-size: 0.95rem; outline: none; font-family: inherit; transition: border-color 0.18s, box-shadow 0.18s; }
+        .search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,146,42,0.12); }
+        .search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-size: 1rem; color: var(--text-muted); pointer-events: none; }
+        .search-results { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+        .search-result-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1.1rem; text-decoration: none; display: block; transition: border-color 0.15s, box-shadow 0.15s; }
+        .search-result-item:hover { border-color: var(--gold); box-shadow: 0 4px 14px rgba(28,18,8,0.09); }
+        .sr-name { font-weight: 600; color: var(--deep); font-size: 1rem; margin-bottom: 0.2rem; }
+        .sr-movie { font-size: 0.78rem; color: var(--text-muted); }
+        .search-empty { text-align: center; padding: 2rem; color: var(--text-muted); }
         .footer-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
         .footer-link { color: var(--gold); text-decoration: none; font-weight: 500; transition: opacity 0.15s; }
         .footer-link:hover { opacity: 0.8; }
@@ -94,31 +123,61 @@ export default function Home() {
 
       <main className="container">
         <div className="ornament">✦ ✦ ✦</div>
-        <p className="section-label">Browse by Topic</p>
 
-        {loading && <div className="loading">Loading collections…</div>}
-
-        {!loading && topics.length === 0 && (
-          <div className="empty">
-            <div className="empty-icon">🎵</div>
-            <p>No topics yet. Check back soon!</p>
+        <div className="search-wrap">
+          <div className="search-input-row">
+            <span className="search-icon">🔍</span>
+            <input
+              className="search-input"
+              type="text"
+              placeholder="Search songs or movies…"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
           </div>
-        )}
+        </div>
 
-        {!loading && topics.length > 0 && (
-          <div className="topics-grid">
-            {topics.map((topic, i) => {
-              const icons = ['🌸', '🎶', '🌙', '🔥', '💫', '🌊', '🕊️', '🌿'];
-              return (
-                <Link key={topic.id} href={`/topic/${topic.id}`} className="topic-card">
-                  <div className="card-icon">{icons[i % icons.length]}</div>
-                  <div className="card-name">{topic.name}</div>
-                  <div className="card-count">{(topic.songs || []).length} songs</div>
-                  <span className="card-arrow">→</span>
-                </Link>
-              );
-            })}
-          </div>
+        {searchQuery.trim() ? (
+          <>
+            {searching && <div className="loading">Searching…</div>}
+            {!searching && searchResults.length === 0 && <div className="search-empty">No results found for "{searchQuery}"</div>}
+            {!searching && searchResults.length > 0 && (
+              <div className="search-results">
+                {searchResults.map(song => (
+                  <Link key={song.id} href={`/song/${song.id}`} className="search-result-item">
+                    <div className="sr-name">{song.name}</div>
+                    {song.movie && <div className="sr-movie">🎬 {song.movie}</div>}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="section-label">Browse by Topic</p>
+            {loading && <div className="loading">Loading collections…</div>}
+            {!loading && topics.length === 0 && (
+              <div className="empty">
+                <div className="empty-icon">🎵</div>
+                <p>No topics yet. Check back soon!</p>
+              </div>
+            )}
+            {!loading && topics.length > 0 && (
+              <div className="topics-grid">
+                {topics.map((topic, i) => {
+                  const icons = ['🌸', '🎶', '🌙', '🔥', '💫', '🌊', '🕊️', '🌿'];
+                  return (
+                    <Link key={topic.id} href={`/topic/${topic.id}`} className="topic-card">
+                      <div className="card-icon">{icons[i % icons.length]}</div>
+                      <div className="card-name">{topic.name}</div>
+                      <div className="card-count">{(topic.songs || []).length} songs</div>
+                      <span className="card-arrow">→</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
 
