@@ -53,6 +53,28 @@ export default async function handler(req, res) {
       return res.json({ success: true });
     }
 
+    if (action === 'move-song') {
+      const { songId, targetPlaylistId } = req.body;
+      if (!songId || !targetPlaylistId) return res.status(400).json({ error: 'songId and targetPlaylistId required' });
+      // Remove from source
+      const srcDoc = await fdb.collection('playlists').doc(id).get();
+      const srcSongs = (srcDoc.data()?.songs || [])
+        .filter(s => (typeof s === 'string' ? s : s.songId) !== songId)
+        .map((s, i) => ({ ...(typeof s === 'string' ? { songId: s, votes: 0 } : s), order: i }));
+      await fdb.collection('playlists').doc(id).update({ songs: srcSongs, updatedAt: new Date().toISOString() });
+      // Add to target
+      const tgtDoc = await fdb.collection('playlists').doc(targetPlaylistId).get();
+      if (!tgtDoc.exists) return res.status(404).json({ error: 'Target playlist not found' });
+      const tgtSongs = tgtDoc.data()?.songs || [];
+      if (!tgtSongs.some(s => (typeof s === 'string' ? s : s.songId) === songId)) {
+        await fdb.collection('playlists').doc(targetPlaylistId).update({
+          songs: [...tgtSongs, { songId, order: tgtSongs.length, votes: 0, addedAt: new Date().toISOString() }],
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      return res.json({ success: true });
+    }
+
     if (action === 'remove-song') {
       const { songId } = req.body;
       const doc = await fdb.collection('playlists').doc(id).get();

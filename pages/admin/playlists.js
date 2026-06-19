@@ -21,6 +21,8 @@ export default function AdminPlaylists() {
   const [songSearch, setSongSearch] = useState([]);
   const [searching, setSearching] = useState(false);
   const [toast, setToast] = useState('');
+  const [movingId, setMovingId] = useState(null); // songId being moved
+  const [sortMode, setSortMode] = useState({}); // {playlistId: 'manual'|'az'|'movie'|'votes'}
 
   useEffect(() => { if (!loading && !auth) router.replace('/admin/login'); }, [auth, loading]);
 
@@ -32,7 +34,7 @@ export default function AdminPlaylists() {
       const res = await apiFetch('/api/admin/playlists');
       const text = await res.text();
       const data = (() => { try { return JSON.parse(text); } catch { return {}; } })();
-      if (!res.ok) { showToast(`⚠ API error ${res.status} — check Vercel env vars`); setFetching(false); return; }
+      if (!res.ok) { showToast(`⚠ API error ${res.status}`); setFetching(false); return; }
       setPlaylists(data.playlists || []);
     } catch (err) {
       showToast('⚠ Failed to load: ' + err.message);
@@ -57,6 +59,8 @@ export default function AdminPlaylists() {
   const toggleExpand = async (id) => {
     if (expanded === id) { setExpanded(null); return; }
     setExpanded(id);
+    setMovingId(null);
+    setSortMode(prev => ({ ...prev, [id]: prev[id] || 'manual' }));
     if (!playlistDetail[id]) await loadDetail(id);
   };
 
@@ -90,7 +94,7 @@ export default function AdminPlaylists() {
     setActionId(songId);
     const res = await apiFetch(`/api/admin/playlists/${playlistId}`, { method: 'PATCH', body: JSON.stringify({ action: 'add-song', songId }) });
     const data = await res.json();
-    if (res.ok) { showToast('✓ Song added'); setAddSongInput(''); setSongSearch([]); loadDetail(playlistId); load(); }
+    if (res.ok) { showToast('✓ Song added'); setAddSongInput(''); setSongSearch([]); await loadDetail(playlistId); load(); }
     else showToast('⚠ ' + (data.error || 'Failed'));
     setActionId(null);
   };
@@ -99,9 +103,47 @@ export default function AdminPlaylists() {
     setActionId(songId);
     await apiFetch(`/api/admin/playlists/${playlistId}`, { method: 'PATCH', body: JSON.stringify({ action: 'remove-song', songId }) });
     showToast('✓ Removed');
-    loadDetail(playlistId);
+    await loadDetail(playlistId);
     load();
     setActionId(null);
+  };
+
+  const moveSong = async (playlistId, songId, targetPlaylistId) => {
+    if (!targetPlaylistId) return;
+    setActionId(songId);
+    const res = await apiFetch(`/api/admin/playlists/${playlistId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'move-song', songId, targetPlaylistId }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      const targetName = playlists.find(p => p.id === targetPlaylistId)?.name || 'playlist';
+      showToast(`✓ Moved to ${targetName}`);
+      setMovingId(null);
+      await loadDetail(playlistId);
+      // Invalidate target detail so it reloads fresh
+      setPlaylistDetail(prev => { const n = { ...prev }; delete n[targetPlaylistId]; return n; });
+      load();
+    } else {
+      showToast('⚠ ' + (data.error || 'Move failed'));
+    }
+    setActionId(null);
+  };
+
+  const sortSongs = async (playlistId, mode) => {
+    setSortMode(prev => ({ ...prev, [playlistId]: mode }));
+    if (mode === 'manual') return; // just reset display, original order preserved
+    const detail = playlistDetail[playlistId];
+    if (!detail?.songs) return;
+    const sorted = [...detail.songs].sort((a, b) => {
+      if (mode === 'az') return (a.name || '').localeCompare(b.name || '');
+      if (mode === 'movie') return (a.movie || '').localeCompare(b.movie || '') || (a.name || '').localeCompare(b.name || '');
+      if (mode === 'votes') return (b.votes || 0) - (a.votes || 0);
+      return 0;
+    }).map((s, i) => ({ ...s, order: i }));
+    setPlaylistDetail(prev => ({ ...prev, [playlistId]: { ...detail, songs: sorted } }));
+    await apiFetch(`/api/admin/playlists/${playlistId}`, { method: 'PATCH', body: JSON.stringify({ action: 'reorder', songs: sorted }) });
+    showToast('✓ Sorted and saved');
   };
 
   const handleDragStart = (idx) => setDragIdx(idx);
@@ -118,6 +160,7 @@ export default function AdminPlaylists() {
   };
   const handleDragEnd = async (playlistId) => {
     setDragIdx(null);
+    setSortMode(prev => ({ ...prev, [playlistId]: 'manual' }));
     const songs = playlistDetail[playlistId]?.songs || [];
     await apiFetch(`/api/admin/playlists/${playlistId}`, { method: 'PATCH', body: JSON.stringify({ action: 'reorder', songs }) });
     showToast('✓ Order saved');
@@ -158,22 +201,33 @@ export default function AdminPlaylists() {
         .search-result-item:last-child { border-bottom: none; }
         .sr-name { font-size: 0.85rem; color: var(--admin-text); }
         .sr-movie { font-size: 0.72rem; color: var(--admin-muted); }
-        .add-btn { font-size: 0.75rem; background: rgba(108,142,255,0.15); color: var(--admin-accent); border: 1px solid var(--admin-accent); border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; }
-        .song-row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--admin-border); border-radius: 6px; margin-bottom: 5px; cursor: grab; user-select: none; }
+        .add-btn { font-size: 0.75rem; background: rgba(108,142,255,0.15); color: var(--admin-accent); border: 1px solid var(--admin-accent); border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; white-space: nowrap; }
+        /* Sort bar */
+        .sort-bar { display: flex; align-items: center; gap: 6px; margin: 0.75rem 0 0.5rem; flex-wrap: wrap; }
+        .sort-label { font-size: 0.7rem; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 2px; }
+        .sort-btn { font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 12px; border: 1px solid var(--admin-border); background: none; color: var(--admin-muted); cursor: pointer; font-weight: 500; transition: all 0.12s; }
+        .sort-btn.active { background: var(--admin-accent); color: #fff; border-color: var(--admin-accent); }
+        .sort-btn:hover:not(.active) { border-color: var(--admin-accent); color: var(--admin-accent); }
+        /* Song rows */
+        .song-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--admin-border); border-radius: 6px; margin-bottom: 4px; cursor: grab; user-select: none; }
         .song-row.dragging { opacity: 0.35; }
-        .drag-handle { color: var(--admin-muted); font-size: 0.85rem; }
+        .drag-handle { color: var(--admin-muted); font-size: 0.85rem; flex-shrink: 0; }
         .song-num { font-size: 0.7rem; color: var(--admin-muted); width: 18px; text-align: right; flex-shrink: 0; }
         .song-info { flex: 1; min-width: 0; }
         .song-name-r { font-size: 0.85rem; color: var(--admin-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .song-movie-r { font-size: 0.7rem; color: var(--admin-muted); }
         .vote-pill { font-size: 0.7rem; color: var(--admin-accent); background: rgba(108,142,255,0.1); border-radius: 10px; padding: 1px 6px; flex-shrink: 0; }
-        .rm-btn { background: none; border: none; color: var(--admin-muted); cursor: pointer; font-size: 0.9rem; flex-shrink: 0; line-height: 1; }
+        .move-btn { background: none; border: 1px solid var(--admin-border); color: var(--admin-muted); cursor: pointer; font-size: 0.72rem; padding: 0.18rem 0.45rem; border-radius: 4px; flex-shrink: 0; line-height: 1.4; }
+        .move-btn:hover { border-color: var(--admin-accent); color: var(--admin-accent); }
+        .move-select { font-size: 0.75rem; padding: 0.2rem 0.4rem; background: rgba(0,0,0,0.4); border: 1px solid var(--admin-accent); border-radius: 4px; color: var(--admin-text); outline: none; max-width: 140px; cursor: pointer; }
+        .rm-btn { background: none; border: none; color: var(--admin-muted); cursor: pointer; font-size: 1rem; flex-shrink: 0; line-height: 1; padding: 0 2px; }
         .rm-btn:hover { color: var(--error); }
         .hint { font-size: 0.72rem; color: var(--admin-muted); margin-top: 0.5rem; }
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
         .loading-msg { color: var(--admin-muted); font-size: 0.82rem; padding: 0.5rem 0; }
-        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; }
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; z-index: 999; white-space: nowrap; }
       `}</style>
+
       <div className="wrap" suppressHydrationWarning>
         {toast && <div className="toast">{toast}</div>}
         <div className="topbar">
@@ -200,6 +254,9 @@ export default function AdminPlaylists() {
         {playlists.map(pl => {
           const detail = playlistDetail[pl.id];
           const isOpen = expanded === pl.id;
+          const curSort = sortMode[pl.id] || 'manual';
+          const otherPlaylists = playlists.filter(p => p.id !== pl.id);
+
           return (
             <div key={pl.id} className="pl-card">
               <div className="pl-header" onClick={() => toggleExpand(pl.id)}>
@@ -241,6 +298,16 @@ export default function AdminPlaylists() {
                     </div>
                   )}
 
+                  {/* Sort bar */}
+                  {detail?.songs?.length > 1 && (
+                    <div className="sort-bar">
+                      <span className="sort-label">Sort:</span>
+                      {[['manual', '⠿ Manual'], ['az', 'A–Z'], ['movie', 'Movie'], ['votes', 'Votes ↓']].map(([mode, label]) => (
+                        <button key={mode} className={`sort-btn${curSort === mode ? ' active' : ''}`} onClick={() => sortSongs(pl.id, mode)}>{label}</button>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Song list */}
                   {!detail && <div className="loading-msg">Loading songs…</div>}
                   {detail && detail.songs?.length === 0 && <div style={{ fontSize: '0.82rem', color: 'var(--admin-muted)', padding: '0.5rem 0' }}>No songs yet. Search above to add.</div>}
@@ -260,10 +327,29 @@ export default function AdminPlaylists() {
                         {song.movie && <div className="song-movie-r">{song.movie}</div>}
                       </div>
                       {song.votes > 0 && <span className="vote-pill">{song.votes}v</span>}
+
+                      {/* Move to playlist */}
+                      {otherPlaylists.length > 0 && (
+                        movingId === song.songId ? (
+                          <select
+                            className="move-select"
+                            defaultValue=""
+                            autoFocus
+                            onChange={e => moveSong(pl.id, song.songId, e.target.value)}
+                            onBlur={() => setMovingId(null)}
+                          >
+                            <option value="" disabled>Move to…</option>
+                            {otherPlaylists.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                          </select>
+                        ) : (
+                          <button className="move-btn" title="Move to another playlist" onClick={() => setMovingId(song.songId)}>⇄</button>
+                        )
+                      )}
+
                       <button className="rm-btn" disabled={actionId === song.songId} onClick={() => removeSong(pl.id, song.songId)}>×</button>
                     </div>
                   ))}
-                  {detail?.songs?.length > 0 && <p className="hint">Drag to reorder. Reorder is saved automatically on drop.</p>}
+                  {detail?.songs?.length > 0 && <p className="hint">Drag to reorder. Sort buttons save the order automatically.</p>}
                 </div>
               )}
             </div>

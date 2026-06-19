@@ -8,7 +8,8 @@ const INBOX_ID = 'suggestions-inbox';
 const INBOX_NAME = 'Suggestions Inbox';
 
 function slugify(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  return slug || 'song-' + Date.now().toString(36);
 }
 
 async function ensureInboxPlaylist() {
