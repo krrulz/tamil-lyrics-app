@@ -1,5 +1,5 @@
 // pages/suggest.js
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -12,6 +12,16 @@ export default function SuggestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [existingSongs, setExistingSongs] = useState([]);
+  const [songFilter, setSongFilter] = useState('');
+  const [showExisting, setShowExisting] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/songs?limit=500')
+      .then(r => r.json())
+      .then(d => setExistingSongs(d.songs || []))
+      .catch(() => {});
+  }, []);
 
   const updateSong = (i, field, val) =>
     setSongs(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
@@ -97,6 +107,17 @@ export default function SuggestPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner-gold { width: 18px; height: 18px; border: 2px solid rgba(200,146,42,0.3); border-top-color: var(--gold-light); border-radius: 50%; animation: spin 0.7s linear infinite; }
         .count-badge { background: var(--gold); color: var(--deep); font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 20px; margin-left: 6px; }
+        .existing-section { background: var(--card-bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1.75rem; }
+        .existing-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .existing-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .existing-toggle { font-size: 0.75rem; color: var(--gold); font-weight: 600; }
+        .existing-filter { width: 100%; margin-top: 0.75rem; padding: 0.5rem 0.75rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; background: #FFFDF7; color: var(--deep); outline: none; font-family: inherit; }
+        .existing-filter:focus { border-color: var(--gold); }
+        .existing-list { margin-top: 0.6rem; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .existing-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; border-radius: 6px; background: rgba(200,146,42,0.05); font-size: 0.82rem; }
+        .existing-item-name { color: var(--deep); font-weight: 500; }
+        .existing-item-movie { color: var(--text-muted); font-size: 0.75rem; }
+        .existing-empty { text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 0.75rem 0; }
       `}</style>
 
       <div className="header">
@@ -116,6 +137,47 @@ export default function SuggestPage() {
             <h1>Suggest songs</h1>
             <p className="subtitle">Know Tamil songs that belong in our collection? Add up to 10 at once.</p>
             <div className="ornament">✦ ✦ ✦</div>
+
+            {existingSongs.length > 0 && (
+              <div className="existing-section">
+                <div className="existing-header" onClick={() => setShowExisting(v => !v)}>
+                  <span className="existing-title">
+                    Already in collection
+                    <span className="count-badge">{existingSongs.length}</span>
+                  </span>
+                  <span className="existing-toggle">{showExisting ? '▲ Hide' : '▼ View list'}</span>
+                </div>
+                {showExisting && (
+                  <>
+                    <input
+                      className="existing-filter"
+                      type="text"
+                      placeholder="Search existing songs…"
+                      value={songFilter}
+                      onChange={e => setSongFilter(e.target.value)}
+                    />
+                    <div className="existing-list">
+                      {(() => {
+                        const q = songFilter.trim().toLowerCase();
+                        const filtered = q
+                          ? existingSongs.filter(s =>
+                              s.name.toLowerCase().includes(q) ||
+                              (s.movie || '').toLowerCase().includes(q)
+                            )
+                          : existingSongs;
+                        if (!filtered.length) return <div className="existing-empty">No matches found.</div>;
+                        return filtered.map(s => (
+                          <div key={s.id} className="existing-item">
+                            <span className="existing-item-name">{s.name}</span>
+                            {s.movie && <span className="existing-item-movie">🎬 {s.movie}</span>}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {error && <div className="error-msg">⚠ {error}</div>}
 
