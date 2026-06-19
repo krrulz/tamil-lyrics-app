@@ -9,9 +9,11 @@ export default function AdminSongs() {
   const { auth, loading, apiFetch } = useAdminAuth();
   const router = useRouter();
   const [songs, setSongs] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [filter, setFilter] = useState('');
-  const [editing, setEditing] = useState(null); // full song object being edited
+  const [playlistFilter, setPlaylistFilter] = useState('');
+  const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [toast, setToast] = useState('');
@@ -25,9 +27,13 @@ export default function AdminSongs() {
     if (!auth) return;
     setFetching(true);
     try {
-      const res = await apiFetch('/api/admin/songs');
-      const data = await res.json();
-      setSongs(data.songs || []);
+      const [songsRes, plRes] = await Promise.all([
+        apiFetch('/api/admin/songs'),
+        apiFetch('/api/admin/playlists'),
+      ]);
+      const [songsData, plData] = await Promise.all([songsRes.json(), plRes.json()]);
+      setSongs(songsData.songs || []);
+      setPlaylists(plData.playlists || []);
     } catch (err) {
       showToast('⚠ Failed to load: ' + err.message);
     } finally {
@@ -96,10 +102,17 @@ export default function AdminSongs() {
     }
   };
 
+  const activePl = playlists.find(p => p.id === playlistFilter);
+  const plSongIds = activePl
+    ? new Set((activePl.songs || []).map(s => typeof s === 'string' ? s : s.songId))
+    : null;
+
   const q = filter.trim().toLowerCase();
-  const filtered = q
-    ? songs.filter(s => s.name?.toLowerCase().includes(q) || (s.movie || '').toLowerCase().includes(q))
-    : songs;
+  const filtered = songs.filter(s => {
+    if (plSongIds && !plSongIds.has(s.id)) return false;
+    if (q && !s.name?.toLowerCase().includes(q) && !(s.movie || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
 
   if (loading || !auth) return null;
 
@@ -120,6 +133,8 @@ export default function AdminSongs() {
         .search-input { width: 100%; padding: 0.5rem 0.8rem 0.5rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); font-size: 0.85rem; outline: none; }
         .search-input:focus { border-color: var(--admin-accent); }
         .search-icon { position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); color: var(--admin-muted); font-size: 0.85rem; pointer-events: none; }
+        .pl-select { width: 100%; padding: 0.45rem 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); font-size: 0.82rem; outline: none; margin-bottom: 0.5rem; cursor: pointer; }
+        .pl-select:focus { border-color: var(--admin-accent); }
         .song-list { flex: 1; overflow-y: auto; padding: 0 0.5rem 1rem; }
         .song-row { display: flex; align-items: center; gap: 8px; padding: 0.65rem 0.75rem; border-radius: 7px; cursor: pointer; transition: background 0.12s; margin-bottom: 2px; }
         .song-row:hover { background: rgba(255,255,255,0.05); }
@@ -193,8 +208,21 @@ export default function AdminSongs() {
                 onChange={e => setFilter(e.target.value)}
               />
             </div>
+            {playlists.length > 0 && (
+              <select
+                className="pl-select"
+                value={playlistFilter}
+                onChange={e => { setPlaylistFilter(e.target.value); setEditing(null); }}
+              >
+                <option value="">All playlists</option>
+                {playlists.map(p => {
+                  const cnt = (p.songs || []).length;
+                  return <option key={p.id} value={p.id}>{p.name} ({cnt})</option>;
+                })}
+              </select>
+            )}
             <div style={{ fontSize: '0.72rem', color: 'var(--admin-muted)', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
-              {fetching ? 'Loading…' : <><span className="count-chip">{filtered.length}</span> of {songs.length} songs</>}
+              {fetching ? 'Loading…' : <><span className="count-chip">{filtered.length}</span>{playlistFilter || q ? ` of ${songs.length}` : ''} songs</>}
             </div>
           </div>
 
