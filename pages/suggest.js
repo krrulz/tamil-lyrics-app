@@ -98,7 +98,16 @@ export default function SuggestPage() {
         .remove-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0 4px; line-height: 1; }
         .remove-btn:hover { color: #c0392b; }
         .song-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 480px) { .song-row { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+          .container { padding: 1.75rem 1rem 3rem; }
+          .fields-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+          .song-row { grid-template-columns: 1fr; }
+          .container { padding: 1.25rem 0.9rem 2.5rem; }
+          h1 { font-size: 1.4rem; }
+          .existing-list { max-height: 200px; }
+        }
         .field { margin-bottom: 0; }
         .field input { margin-top: 4px; }
         .add-song-btn { width: 100%; padding: 0.6rem; border: 2px dashed var(--border); border-radius: 8px; background: none; color: var(--text-muted); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }

@@ -226,6 +226,22 @@ export default function AdminPlaylists() {
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
         .loading-msg { color: var(--admin-muted); font-size: 0.82rem; padding: 0.5rem 0; }
         .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; z-index: 999; white-space: nowrap; }
+        @media (max-width: 768px) {
+          .wrap { padding: 1.25rem; }
+          .topbar { flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+          .topbar h1 { font-size: 1.1rem; }
+          .pl-body { padding: 0 1rem 1rem; }
+          .sort-bar { gap: 4px; }
+          .move-select { max-width: 120px; }
+        }
+        @media (max-width: 480px) {
+          .wrap { padding: 0.9rem; }
+          .pl-header { padding: 0.85rem 1rem; }
+          .song-row { gap: 5px; }
+          .song-name-r { font-size: 0.8rem; }
+          .drag-handle { display: none; }
+          .vote-pill { display: none; }
+        }
       `}</style>
 
       <div className="wrap" suppressHydrationWarning>

@@ -260,10 +260,21 @@ export default function SongPage() {
         }
         .lyrics-na { font-size: 1rem; color: var(--text-muted); padding: 2.5rem; text-align: center; }
 
+        @media (max-width: 768px) {
+          .container { padding: 1.75rem 1.1rem 4rem; }
+          .lyrics-body { padding: 1.25rem 1.1rem; }
+          .seg-lines { padding: 0.6rem 0.9rem 0.75rem; }
+          .lang-buttons { gap: 0.9rem; }
+        }
         @media (max-width: 480px) {
-          .container { padding: 1.5rem 1rem 4rem; }
-          .lang-btn { min-width: 140px; padding: 1.1rem 1.5rem; }
-          .lyric-line { font-size: 1.2rem; line-height: 2.2; }
+          .container { padding: 1.25rem 0.9rem 3.5rem; }
+          .lang-btn { min-width: 130px; padding: 1rem 1.25rem; font-size: 1rem; }
+          .lang-btn-icon { font-size: 1.5rem; }
+          .lyric-line { font-size: 1.15rem; line-height: 2.1; }
+          .lyrics-body { padding: 1rem 0.9rem; font-size: 1.2rem; }
+          .lyrics-lang-bar { gap: 0.35rem; }
+          .legend { gap: 0.4rem; }
+          .legend-item { font-size: 0.68rem; padding: 0.2rem 0.55rem; }
         }
       `}</style>
 

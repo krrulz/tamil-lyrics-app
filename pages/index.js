@@ -112,7 +112,21 @@ export default function Home() {
         .footer-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
         .footer-link { color: var(--gold); text-decoration: none; font-weight: 500; transition: opacity 0.15s; }
         .footer-link:hover { opacity: 0.8; }
-        @media (max-width: 480px) { .topics-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+          .header { padding: 1.75rem 1.25rem 1.5rem; }
+          .container { padding: 0 1rem 2.5rem; }
+          .ornament { padding: 1rem 0 0.25rem; letter-spacing: 0.3rem; }
+          .topics-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+          .search-input { font-size: 0.9rem; padding: 0.6rem 1rem 0.6rem 2.2rem; }
+        }
+        @media (max-width: 480px) {
+          .header { padding: 1.25rem 1rem 1.1rem; }
+          .topics-grid { grid-template-columns: 1fr; }
+          .topic-card { padding: 1.1rem 1rem; }
+          .card-arrow { display: none; }
+          .search-input-row { max-width: 100%; }
+          .footer-links { gap: 1rem; }
+        }
       `}</style>
 
       <header className="header">

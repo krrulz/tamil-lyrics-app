@@ -72,6 +72,25 @@ export default function AdminDashboard() {
         .pw-msg.ok { color: var(--success); } .pw-msg.err { color: var(--error); }
         .change-pw-link { font-size: 0.82rem; color: var(--admin-muted); background: none; border: 1px solid var(--admin-border); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; }
         .change-pw-link:hover { color: var(--admin-text); }
+        @media (max-width: 768px) {
+          .main { padding: 1.25rem; }
+          .topbar { flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+          .topbar h1 { font-size: 1.2rem; width: 100%; }
+          .topbar-right { flex-wrap: wrap; gap: 6px; }
+          .email { display: none; }
+          .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+          .card { padding: 1.1rem; }
+          .stats-row { gap: 8px; }
+          .stat { padding: 0.75rem; }
+          .stat-num { font-size: 1.6rem; }
+          .pw-row { flex-direction: column; }
+          .pw-input { min-width: unset; }
+        }
+        @media (max-width: 480px) {
+          .main { padding: 1rem; }
+          .grid { grid-template-columns: 1fr 1fr; }
+          .stats-row { grid-template-columns: 1fr 1fr; }
+        }
       `}</style>
       <div className="wrap">
         <div className="main">

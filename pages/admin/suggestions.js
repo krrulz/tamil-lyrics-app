@@ -115,6 +115,20 @@ export default function AdminSuggestions() {
         .manual-textarea { min-height: 80px; resize: vertical; }
         .manual-actions { display: flex; gap: 8px; margin-top: 0.5rem; }
         .section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--admin-muted); margin-bottom: 0.75rem; }
+        @media (max-width: 768px) {
+          .wrap { padding: 1.25rem; }
+          .topbar { flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+          .topbar h1 { font-size: 1.1rem; }
+          .info-banner { flex-direction: column; align-items: flex-start; gap: 8px; }
+          .manual-panel { padding: 1.1rem; }
+          .card { flex-direction: column; gap: 0.5rem; }
+          .submitter { text-align: left; }
+        }
+        @media (max-width: 480px) {
+          .wrap { padding: 0.9rem; }
+          .manual-actions { flex-wrap: wrap; }
+          .manual-actions .btn { flex: 1; justify-content: center; }
+        }
       `}</style>
 
       <div className="wrap" suppressHydrationWarning>

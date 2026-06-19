@@ -168,7 +168,22 @@ export default function AdminTopics() {
         .result-movie { font-size: 0.72rem; color: var(--admin-muted); }
         .already-added { opacity: 0.4; cursor: not-allowed; }
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
-        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; }
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; z-index: 999; white-space: nowrap; }
+        @media (max-width: 768px) {
+          .wrap { padding: 1.25rem; }
+          .topbar { flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+          .topbar h1 { font-size: 1.1rem; }
+          .form-row { grid-template-columns: 1fr; }
+          .editor { padding: 1.1rem; }
+          .topic-actions { flex-wrap: wrap; }
+        }
+        @media (max-width: 480px) {
+          .wrap { padding: 0.9rem; }
+          .form-panel { padding: 1rem; }
+          .topic-card { padding: 1rem; }
+          .save-row { flex-wrap: wrap; }
+          .save-btn, .close-btn { flex: 1; }
+        }
       `}</style>
       <div className="wrap">
         {toast && <div className="toast">{toast}</div>}

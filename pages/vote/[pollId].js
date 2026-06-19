@@ -117,7 +117,15 @@ export default function VotePage() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner-gold { width: 18px; height: 18px; border: 2px solid rgba(200,146,42,0.3); border-top-color: var(--gold-light); border-radius: 50%; animation: spin 0.7s linear infinite; }
-        @media (max-width: 480px) { .song-option { padding: 0.75rem 0.9rem; } }
+        @media (max-width: 768px) {
+          .container { padding: 1.5rem 1rem 3rem; }
+          .page-title { font-size: 1.4rem; }
+        }
+        @media (max-width: 480px) {
+          .song-option { padding: 0.75rem 0.9rem; gap: 10px; }
+          .submit-btn { padding: 0.8rem; font-size: 0.95rem; }
+          .container { padding: 1.25rem 0.9rem 2.5rem; }
+        }
       `}</style>
 
       <div className="header">

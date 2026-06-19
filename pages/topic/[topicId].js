@@ -66,7 +66,15 @@ export default function TopicPage() {
 
         .loading { text-align: center; padding: 4rem 1rem; color: var(--text-muted); font-style: italic; }
         .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
-        @media (max-width: 480px) { .song-arrow { display: none; } }
+        @media (max-width: 768px) {
+          .container { padding: 1.5rem 1rem 2.5rem; }
+          .song-item { padding: 0.85rem 1rem; }
+        }
+        @media (max-width: 480px) {
+          .song-arrow { display: none; }
+          .page-title { font-size: 1.5rem; }
+          .song-item { padding: 0.75rem 0.9rem; }
+        }
         .filter-wrap { position: relative; margin-bottom: 1.25rem; }
         .filter-input { width: 100%; padding: 0.55rem 2.2rem 0.55rem 0.9rem; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--deep); font-size: 0.88rem; outline: none; font-family: inherit; transition: border-color 0.15s; }
         .filter-input:focus { border-color: var(--gold); }

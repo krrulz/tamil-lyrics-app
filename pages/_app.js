@@ -27,6 +27,13 @@ export default function App({ Component, pageProps }) {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
         .spinner-dark { border-color: rgba(0,0,0,0.15); border-top-color: var(--deep); }
+        /* Global responsive utilities */
+        @media (max-width: 768px) {
+          html { font-size: 15px; }
+        }
+        @media (max-width: 480px) {
+          html { font-size: 14px; }
+        }
       `}</style>
       <Component {...pageProps} />
     </>

@@ -105,7 +105,22 @@ export default function AdminPolls() {
         .btn-view { background: transparent; color: var(--admin-muted); border-color: var(--admin-border); text-decoration: none; }
         .btn-close { background: rgba(251,191,36,0.1); color: var(--warn); border-color: var(--warn); }
         .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
-        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; }
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; z-index: 999; white-space: nowrap; }
+        @media (max-width: 768px) {
+          .wrap { padding: 1.25rem; }
+          .topbar { flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+          .topbar h1 { font-size: 1.1rem; }
+          .create-form { padding: 1.1rem; }
+          .poll-card { padding: 1rem; }
+          .actions { gap: 6px; }
+          .btn { font-size: 0.75rem; padding: 0.3rem 0.7rem; }
+        }
+        @media (max-width: 480px) {
+          .wrap { padding: 0.9rem; }
+          .actions { flex-direction: column; align-items: stretch; }
+          .actions .btn, .actions a { text-align: center; justify-content: center; }
+          input, select, textarea { font-size: 0.85rem; }
+        }
       `}</style>
       <div className="wrap">
         {toast && <div className="toast">{toast}</div>}
