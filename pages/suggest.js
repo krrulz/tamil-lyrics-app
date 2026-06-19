@@ -12,16 +12,27 @@ export default function SuggestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [existingSongs, setExistingSongs] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [allSongs, setAllSongs] = useState([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState('');
   const [songFilter, setSongFilter] = useState('');
   const [showExisting, setShowExisting] = useState(false);
 
   useEffect(() => {
+    fetch('/api/playlists')
+      .then(r => r.json())
+      .then(d => setPlaylists(d.playlists || []))
+      .catch(() => {});
     fetch('/api/songs?limit=500')
       .then(r => r.json())
-      .then(d => setExistingSongs(d.songs || []))
+      .then(d => setAllSongs(d.songs || []))
       .catch(() => {});
   }, []);
+
+  const activePl = playlists.find(p => p.id === selectedPlaylist);
+  const existingSongs = activePl
+    ? allSongs.filter(s => activePl.songIds.includes(s.id))
+    : allSongs;
 
   const updateSong = (i, field, val) =>
     setSongs(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
@@ -111,7 +122,7 @@ export default function SuggestPage() {
         .existing-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
         .existing-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
         .existing-toggle { font-size: 0.75rem; color: var(--gold); font-weight: 600; }
-        .existing-filter { width: 100%; margin-top: 0.75rem; padding: 0.5rem 0.75rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; background: #FFFDF7; color: var(--deep); outline: none; font-family: inherit; }
+        .existing-filter { width: 100%; margin-top: 0.75rem; padding: 0.5rem 0.75rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; background: #FFFDF7; color: var(--deep); outline: none; font-family: inherit; cursor: pointer; }
         .existing-filter:focus { border-color: var(--gold); }
         .existing-list { margin-top: 0.6rem; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
         .existing-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; border-radius: 6px; background: rgba(200,146,42,0.05); font-size: 0.82rem; }
@@ -138,7 +149,7 @@ export default function SuggestPage() {
             <p className="subtitle">Know Tamil songs that belong in our collection? Add up to 10 at once.</p>
             <div className="ornament">✦ ✦ ✦</div>
 
-            {existingSongs.length > 0 && (
+            {allSongs.length > 0 && (
               <div className="existing-section">
                 <div className="existing-header" onClick={() => setShowExisting(v => !v)}>
                   <span className="existing-title">
@@ -147,6 +158,20 @@ export default function SuggestPage() {
                   </span>
                   <span className="existing-toggle">{showExisting ? '▲ Hide' : '▼ View list'}</span>
                 </div>
+                {playlists.length > 0 && (
+                  <select
+                    className="existing-filter"
+                    style={{ marginTop: '0.6rem' }}
+                    value={selectedPlaylist}
+                    onChange={e => { setSelectedPlaylist(e.target.value); setSongFilter(''); }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <option value="">All playlists ({allSongs.length} songs)</option>
+                    {playlists.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.songIds.length} songs)</option>
+                    ))}
+                  </select>
+                )}
                 {showExisting && (
                   <>
                     <input
