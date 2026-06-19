@@ -11,9 +11,6 @@ export default function AdminSuggestions() {
   const [suggestions, setSuggestions] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [fetching, setFetching] = useState(false);
-  const [actionId, setActionId] = useState(null);
-  const [selectedPlaylist, setSelectedPlaylist] = useState({});
-  const [filter, setFilter] = useState('pending');
   const [toast, setToast] = useState('');
   const [showManualAdd, setShowManualAdd] = useState(false);
   const [manualForm, setManualForm] = useState({ name: '', movie: '', tamil: '', english: '', playlistId: '' });
@@ -21,19 +18,20 @@ export default function AdminSuggestions() {
 
   useEffect(() => { if (!loading && !auth) router.replace('/admin/login'); }, [auth, loading]);
 
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
   const load = async () => {
     if (!auth) return;
     setFetching(true);
     try {
       const [sugRes, plRes] = await Promise.all([
-        apiFetch(`/api/suggestions?status=${filter}`),
+        apiFetch('/api/suggestions'),
         apiFetch('/api/admin/playlists'),
       ]);
       const [sugData, plData] = await Promise.all([
         sugRes.ok ? sugRes.json() : Promise.resolve({ suggestions: [] }),
         plRes.ok  ? plRes.json()  : Promise.resolve({ playlists: [] }),
       ]);
-      if (!sugRes.ok) showToast(`⚠ API error ${sugRes.status} — check Vercel env vars`);
       setSuggestions(sugData.suggestions || []);
       setPlaylists(plData.playlists || []);
     } catch (err) {
@@ -43,26 +41,7 @@ export default function AdminSuggestions() {
     }
   };
 
-  useEffect(() => { load(); }, [auth, filter]);
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
-
-  const doAction = async (id, action, extra = {}) => {
-    setActionId(id);
-    try {
-      const res = await apiFetch(`/api/suggestions/${id}`, { method: 'PATCH', body: JSON.stringify({ action, ...extra }) });
-      const text = await res.text();
-      const data = (() => { try { return JSON.parse(text); } catch { return {}; } })();
-      if (res.ok) { showToast(action === 'approve' ? `✓ Approved! Tamil: ${data.tamilFound ? '✓' : '✗'} EN: ${data.englishFound ? '✓' : '✗'}` : `✓ Done`); load(); }
-      else showToast('⚠ ' + (data.error || `Error ${res.status}`));
-    } catch (err) {
-      showToast('⚠ ' + err.message);
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  const statusColors = { pending: '#FBBF24', approved: '#34D399', rejected: '#FC8181' };
+  useEffect(() => { load(); }, [auth]);
 
   const saveManualSong = async () => {
     if (!manualForm.name.trim()) { showToast('⚠ Song name is required'); return; }
@@ -97,35 +76,36 @@ export default function AdminSuggestions() {
 
   if (loading || !auth) return null;
 
+  const inboxPlaylist = playlists.find(p => p.id === 'suggestions-inbox');
+
   return (
     <>
       <Head><title>Suggestions — Admin</title></Head>
       <style>{`
         body { background: var(--admin-bg); }
         .wrap { max-width: 900px; margin: 0 auto; padding: 2rem; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
         .topbar h1 { color: var(--admin-text); font-size: 1.3rem; font-weight: 600; }
         .back { color: var(--admin-muted); text-decoration: none; font-size: 0.85rem; }
-        .filters { display: flex; gap: 8px; margin-bottom: 1.5rem; }
-        .ftab { padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.82rem; border: 1px solid; cursor: pointer; font-weight: 500; }
-        .ftab-active { background: var(--admin-accent); color: #fff; border-color: var(--admin-accent); }
-        .ftab-inactive { background: var(--admin-surface); color: var(--admin-muted); border-color: var(--admin-border); }
-        .card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 1.25rem; margin-bottom: 12px; }
-        .song-name { font-size: 1rem; font-weight: 600; color: var(--admin-text); margin-bottom: 2px; }
-        .meta { font-size: 0.78rem; color: var(--admin-muted); margin-bottom: 8px; }
-        .badge { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 10px; font-weight: 600; }
-        .lyrics-status { font-size: 0.78rem; margin-bottom: 10px; }
-        .lbl-ok { color: var(--success); } .lbl-no { color: var(--admin-muted); }
-        .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        select { padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.05); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text); font-size: 0.82rem; outline: none; }
+        .info-banner { background: rgba(108,142,255,0.08); border: 1px solid rgba(108,142,255,0.25); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .info-text { font-size: 0.85rem; color: var(--admin-muted); }
+        .info-text strong { color: var(--admin-text); }
+        .btn-inbox { background: var(--admin-accent); color: #fff; border: none; border-radius: 6px; padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+        .song-name { font-size: 0.97rem; font-weight: 600; color: var(--admin-text); margin-bottom: 2px; }
+        .meta { font-size: 0.75rem; color: var(--admin-muted); }
+        .lyrics-pills { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .pill { font-size: 0.68rem; padding: 0.15rem 0.55rem; border-radius: 20px; font-weight: 600; }
+        .pill-ok { background: rgba(52,211,153,0.12); color: var(--success); border: 1px solid var(--success); }
+        .pill-no { background: rgba(100,116,139,0.12); color: var(--admin-muted); border: 1px solid var(--admin-border); }
+        .submitter { font-size: 0.78rem; color: var(--admin-muted); text-align: right; white-space: nowrap; }
+        .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
+        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; white-space: nowrap; z-index: 999; }
         .btn { padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 5px; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-scrape { background: rgba(108,142,255,0.15); color: var(--admin-accent); border: 1px solid var(--admin-accent); }
+        .btn-add-song { background: rgba(52,211,153,0.12); color: #34D399; border: 1px solid #34D399; }
         .btn-approve { background: rgba(52,211,153,0.15); color: var(--success); border: 1px solid var(--success); }
         .btn-reject { background: rgba(252,129,129,0.1); color: var(--error); border: 1px solid var(--error); }
-        .empty { color: var(--admin-muted); text-align: center; padding: 3rem; }
-        .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; white-space: nowrap; }
-        .btn-add-song { background: rgba(52,211,153,0.12); color: #34D399; border: 1px solid #34D399; }
         .manual-panel { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .manual-panel h2 { font-size: 1rem; font-weight: 600; color: var(--admin-text); margin-bottom: 1rem; }
         .manual-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0.9rem; }
@@ -134,9 +114,12 @@ export default function AdminSuggestions() {
         .manual-input:focus { border-color: var(--admin-accent); }
         .manual-textarea { min-height: 80px; resize: vertical; }
         .manual-actions { display: flex; gap: 8px; margin-top: 0.5rem; }
+        .section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--admin-muted); margin-bottom: 0.75rem; }
       `}</style>
+
       <div className="wrap" suppressHydrationWarning>
         {toast && <div className="toast">{toast}</div>}
+
         <div className="topbar">
           <h1>💡 Song Suggestions</h1>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -144,6 +127,18 @@ export default function AdminSuggestions() {
             <Link href="/admin" className="back">← Dashboard</Link>
           </div>
         </div>
+
+        <div className="info-banner">
+          <span className="info-text">
+            Songs submitted by users are <strong>automatically fetched and added</strong> to the <strong>Suggestions Inbox</strong> playlist.
+            Review and delete songs there as needed.
+          </span>
+          {inboxPlaylist
+            ? <Link href="/admin/playlists" className="btn-inbox">Open Suggestions Inbox ({inboxPlaylist.songs?.length || 0} songs) →</Link>
+            : <Link href="/admin/playlists" className="btn-inbox">Go to Playlists →</Link>
+          }
+        </div>
+
         {showManualAdd && (
           <div className="manual-panel">
             <h2>Add Song Manually</h2>
@@ -176,48 +171,27 @@ export default function AdminSuggestions() {
             </div>
           </div>
         )}
-        <div className="filters">
-          {['pending', 'approved', 'rejected'].map(f => (
-            <button key={f} className={`ftab ${filter === f ? 'ftab-active' : 'ftab-inactive'}`} onClick={() => setFilter(f)}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
+
+        <div className="section-title">Submission log ({suggestions.length})</div>
+
         {fetching && <div className="empty">Loading…</div>}
-        {!fetching && suggestions.length === 0 && <div className="empty">No {filter} suggestions.</div>}
+        {!fetching && suggestions.length === 0 && <div className="empty">No suggestions yet.</div>}
+
         {suggestions.map(s => (
           <div key={s.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
               <div className="song-name">{s.songName}</div>
-              <span className="badge" style={{ background: `${statusColors[s.status]}22`, color: statusColors[s.status] }}>{s.status}</span>
-            </div>
-            <div className="meta">
-              {s.movie && <span>🎬 {s.movie} · </span>}
-              By {s.submittedBy} · {s.createdAt?.slice(0, 10)}
-              {s.reason && <span> · "{s.reason}"</span>}
-            </div>
-            <div className="lyrics-status">
-              <span className={s.tamilLyrics ? 'lbl-ok' : 'lbl-no'}>Tamil: {s.tamilLyrics ? '✓' : '—'}</span>
-              {' · '}
-              <span className={s.englishLyrics ? 'lbl-ok' : 'lbl-no'}>English: {s.englishLyrics ? '✓' : '—'}</span>
-              {s.lyricsStatus && s.lyricsStatus !== 'not_fetched' && <span style={{ color: 'var(--admin-muted)', marginLeft: 6 }}>({s.lyricsStatus})</span>}
-            </div>
-            {filter === 'pending' && (
-              <div className="actions">
-                <button className="btn btn-scrape" disabled={actionId === s.id} onClick={() => doAction(s.id, 'fetch-lyrics')}>
-                  {actionId === s.id ? <><span className="spinner" /> Fetching…</> : '⬇ Fetch lyrics'}
-                </button>
-                <select value={selectedPlaylist[s.id] || ''} onChange={e => setSelectedPlaylist(p => ({ ...p, [s.id]: e.target.value }))}>
-                  <option value="">— Choose playlist —</option>
-                  {playlists.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <button className="btn btn-approve" disabled={actionId === s.id || !selectedPlaylist[s.id]} onClick={() => doAction(s.id, 'approve', { playlistId: selectedPlaylist[s.id] })}>
-                  ✓ Approve
-                </button>
-                <button className="btn btn-reject" disabled={actionId === s.id} onClick={() => doAction(s.id, 'reject')}>✕ Reject</button>
+              <div className="meta">
+                {s.movie && <span>🎬 {s.movie} · </span>}
+                {s.createdAt?.slice(0, 10)}
+                {s.reason && <span> · "{s.reason}"</span>}
               </div>
-            )}
-            {s.status === 'approved' && <div style={{ fontSize: '0.78rem', color: 'var(--admin-muted)' }}>Added to playlist · Song ID: {s.songId}</div>}
+              <div className="lyrics-pills">
+                <span className={`pill ${s.tamilLyrics ? 'pill-ok' : 'pill-no'}`}>Tamil {s.tamilLyrics ? '✓' : '—'}</span>
+                <span className={`pill ${s.englishLyrics ? 'pill-ok' : 'pill-no'}`}>English {s.englishLyrics ? '✓' : '—'}</span>
+              </div>
+            </div>
+            <div className="submitter">by {s.submittedBy || 'Anonymous'}</div>
           </div>
         ))}
       </div>
