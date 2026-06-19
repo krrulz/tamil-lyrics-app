@@ -23,6 +23,7 @@ export default function AdminPlaylists() {
   const [toast, setToast] = useState('');
   const [movingId, setMovingId] = useState(null); // songId being moved
   const [sortMode, setSortMode] = useState({}); // {playlistId: 'manual'|'az'|'movie'|'votes'}
+  const [editingName, setEditingName] = useState(null); // { id, value }
 
   useEffect(() => { if (!loading && !auth) router.replace('/admin/login'); }, [auth, loading]);
 
@@ -71,6 +72,18 @@ export default function AdminPlaylists() {
     const res = await apiFetch('/api/admin/playlists', { method: 'POST', body: JSON.stringify({ name: newName }) });
     if (res.ok) { showToast('✓ Playlist created'); setNewName(''); setShowCreate(false); load(); }
     setCreating(false);
+  };
+
+  const saveName = async () => {
+    if (!editingName || !editingName.value.trim()) return;
+    const res = await apiFetch(`/api/admin/playlists/${editingName.id}`, {
+      method: 'PATCH', body: JSON.stringify({ name: editingName.value.trim() }),
+    });
+    if (res.ok) {
+      showToast('✓ Name updated');
+      setPlaylists(prev => prev.map(p => p.id === editingName.id ? { ...p, name: editingName.value.trim() } : p));
+      setEditingName(null);
+    } else showToast('⚠ Failed to update name');
   };
 
   const deletePlaylist = async (id) => {
@@ -190,6 +203,13 @@ export default function AdminPlaylists() {
         .pl-actions { display: flex; gap: 8px; align-items: center; }
         .btn-sm { padding: 0.3rem 0.65rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid; }
         .btn-del { background: transparent; color: var(--error); border-color: var(--error); }
+        .btn-edit-name { background: none; border: none; color: var(--admin-muted); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 4px; opacity: 0; transition: opacity 0.15s; }
+        .pl-header:hover .btn-edit-name { opacity: 1; }
+        .btn-edit-name:hover { color: var(--admin-accent); background: rgba(108,142,255,0.1); }
+        .name-edit-row { display: flex; gap: 6px; align-items: center; flex: 1; }
+        .name-edit-input { flex: 1; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.08); border: 1px solid var(--admin-accent); border-radius: 6px; color: var(--admin-text); font-size: 0.95rem; font-weight: 600; outline: none; }
+        .btn-name-save { padding: 0.25rem 0.65rem; background: var(--admin-accent); color: #fff; border: none; border-radius: 5px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+        .btn-name-cancel { padding: 0.25rem 0.6rem; background: none; border: 1px solid var(--admin-border); color: var(--admin-muted); border-radius: 5px; font-size: 0.75rem; cursor: pointer; }
         .chevron { color: var(--admin-muted); font-size: 0.8rem; transition: transform 0.15s; }
         .chevron.open { transform: rotate(180deg); }
         .pl-body { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--admin-border); }
@@ -275,9 +295,26 @@ export default function AdminPlaylists() {
 
           return (
             <div key={pl.id} className="pl-card">
-              <div className="pl-header" onClick={() => toggleExpand(pl.id)}>
-                <div>
-                  <div className="pl-name">{pl.name}</div>
+              <div className="pl-header" onClick={() => { if (editingName?.id !== pl.id) toggleExpand(pl.id); }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {editingName?.id === pl.id ? (
+                    <div className="name-edit-row" onClick={e => e.stopPropagation()}>
+                      <input
+                        className="name-edit-input"
+                        value={editingName.value}
+                        autoFocus
+                        onChange={e => setEditingName(p => ({ ...p, value: e.target.value }))}
+                        onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(null); }}
+                      />
+                      <button className="btn-name-save" onClick={saveName}>✓</button>
+                      <button className="btn-name-cancel" onClick={() => setEditingName(null)}>✕</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div className="pl-name">{pl.name}</div>
+                      <button className="btn-edit-name" title="Rename playlist" onClick={e => { e.stopPropagation(); setEditingName({ id: pl.id, value: pl.name }); }}>✏️</button>
+                    </div>
+                  )}
                   <div className="pl-meta">{(pl.songs || []).length} songs · {pl.createdAt?.slice(0, 10)}</div>
                 </div>
                 <div className="pl-actions" onClick={e => e.stopPropagation()}>

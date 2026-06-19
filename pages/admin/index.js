@@ -29,6 +29,7 @@ export default function AdminDashboard() {
 
   const cards = [
     { href: '/admin/suggestions', icon: '💡', label: 'Suggestions', desc: 'Review song suggestions from users', color: '#6C8EFF' },
+    { href: '/admin/songs', icon: '🎵', label: 'Songs', desc: 'Browse, edit lyrics and delete songs', color: '#F472B6' },
     { href: '/admin/playlists', icon: '🎶', label: 'Playlists', desc: 'Manage song playlists', color: '#34D399' },
     { href: '/admin/polls', icon: '🗳️', label: 'Polls', desc: 'Create and manage voting polls', color: '#F59E0B' },
     { href: '/admin/topics', icon: '📚', label: 'Topics', desc: 'Build and publish topic collections', color: '#F87171' },

@@ -18,6 +18,7 @@ export default function AdminTopics() {
   const [dragIdx, setDragIdx] = useState(null);
   const [actionId, setActionId] = useState(null);
   const [toast, setToast] = useState('');
+  const [editingName, setEditingName] = useState(null); // { id, value }
   const [songQuery, setSongQuery] = useState('');
   const [songResults, setSongResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -62,6 +63,18 @@ export default function AdminTopics() {
     if (res.ok) { showToast('✓ Topic saved'); setEditing(null); load(); }
     else showToast('⚠ Save failed');
     setActionId(null);
+  };
+
+  const saveTopicName = async () => {
+    if (!editingName?.value.trim()) return;
+    const res = await apiFetch(`/api/admin/topics/${editingName.id}`, {
+      method: 'PATCH', body: JSON.stringify({ name: editingName.value.trim() }),
+    });
+    if (res.ok) {
+      showToast('✓ Name updated');
+      setTopics(prev => prev.map(t => t.id === editingName.id ? { ...t, name: editingName.value.trim() } : t));
+      setEditingName(null);
+    } else showToast('⚠ Failed');
   };
 
   const deleteTopic = async (id) => {
@@ -138,6 +151,12 @@ export default function AdminTopics() {
         .topic-meta { font-size: 0.78rem; color: var(--admin-muted); margin-bottom: 10px; }
         .topic-actions { display: flex; gap: 8px; }
         .btn-sm { padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid; }
+        .name-edit-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+        .name-edit-input { flex: 1; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.08); border: 1px solid var(--admin-accent); border-radius: 6px; color: var(--admin-text); font-size: 0.95rem; font-weight: 600; outline: none; }
+        .btn-name-save { padding: 0.25rem 0.65rem; background: var(--admin-accent); color: #fff; border: none; border-radius: 5px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+        .btn-name-cancel { padding: 0.25rem 0.6rem; background: none; border: 1px solid var(--admin-border); color: var(--admin-muted); border-radius: 5px; font-size: 0.75rem; cursor: pointer; }
+        .btn-edit-name { background: none; border: none; color: var(--admin-muted); cursor: pointer; font-size: 0.8rem; padding: 1px 4px; border-radius: 4px; }
+        .btn-edit-name:hover { color: var(--admin-accent); }
         .btn-edit { background: transparent; color: var(--admin-accent); border-color: var(--admin-accent); }
         .btn-delete { background: transparent; color: var(--error); border-color: var(--error); }
         .btn-pub { background: transparent; color: var(--admin-muted); border-color: var(--admin-border); text-decoration: none; }
@@ -284,11 +303,26 @@ export default function AdminTopics() {
         {!fetching && topics.length === 0 && <div className="empty">No topics yet. Create one from a playlist.</div>}
         {topics.map(topic => (
           <div key={topic.id} className="topic-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div className="topic-name">{topic.name}</div>
-                <div className="topic-meta">{(topic.songs || []).length} songs · Created {topic.createdAt?.slice(0, 10)}</div>
-              </div>
+            <div style={{ marginBottom: 8 }}>
+              {editingName?.id === topic.id ? (
+                <div className="name-edit-row">
+                  <input
+                    className="name-edit-input"
+                    value={editingName.value}
+                    autoFocus
+                    onChange={e => setEditingName(p => ({ ...p, value: e.target.value }))}
+                    onKeyDown={e => { if (e.key === 'Enter') saveTopicName(); if (e.key === 'Escape') setEditingName(null); }}
+                  />
+                  <button className="btn-name-save" onClick={saveTopicName}>✓</button>
+                  <button className="btn-name-cancel" onClick={() => setEditingName(null)}>✕</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div className="topic-name">{topic.name}</div>
+                  <button className="btn-edit-name" title="Rename topic" onClick={() => setEditingName({ id: topic.id, value: topic.name })}>✏️</button>
+                </div>
+              )}
+              <div className="topic-meta">{(topic.songs || []).length} songs · Created {topic.createdAt?.slice(0, 10)}</div>
             </div>
             <div className="topic-actions">
               <button className="btn-sm btn-edit" onClick={() => openEdit(topic.id)}>Edit & reorder</button>
