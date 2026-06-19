@@ -15,6 +15,7 @@ export default function AdminSongs() {
   const [playlistFilter, setPlaylistFilter] = useState('');
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [refetching, setRefetching] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [toast, setToast] = useState('');
   const filterTimer = useRef(null);
@@ -79,6 +80,38 @@ export default function AdminSongs() {
       showToast('⚠ ' + err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const refetchLyrics = async () => {
+    if (!editing) return;
+    setRefetching(true);
+    try {
+      const res = await apiFetch(`/api/admin/songs/${editing.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action: 'refetch', name: editing.name, movie: editing.movie }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const ta = data.tamilFound ? '✓' : '✗';
+        const en = data.englishFound ? '✓' : '✗';
+        showToast(`Refetch done — Tamil: ${ta}  English: ${en}`);
+        setEditing(p => ({
+          ...p,
+          tamilLyrics: data.tamilLyrics ?? p.tamilLyrics,
+          englishLyrics: data.englishLyrics ?? p.englishLyrics,
+        }));
+        setSongs(prev => prev.map(s => s.id === editing.id
+          ? { ...s, tamilLyrics: data.tamilLyrics, englishLyrics: data.englishLyrics }
+          : s
+        ));
+      } else {
+        showToast('⚠ ' + (data.error || 'Refetch failed'));
+      }
+    } catch (err) {
+      showToast('⚠ ' + err.message);
+    } finally {
+      setRefetching(false);
     }
   };
 
@@ -173,6 +206,8 @@ export default function AdminSongs() {
         .btn-cancel { padding: 0.55rem 1rem; background: none; border: 1px solid var(--admin-border); color: var(--admin-muted); border-radius: 7px; font-size: 0.88rem; cursor: pointer; }
         .btn-delete { padding: 0.55rem 1rem; background: rgba(252,129,129,0.1); color: var(--error); border: 1px solid var(--error); border-radius: 7px; font-size: 0.88rem; cursor: pointer; margin-left: auto; }
         .btn-delete:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-refetch { padding: 0.55rem 1rem; background: rgba(251,191,36,0.1); color: var(--warn); border: 1px solid var(--warn); border-radius: 7px; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-refetch:disabled { opacity: 0.5; cursor: not-allowed; }
         .song-id-chip { font-size: 0.68rem; color: var(--admin-muted); background: rgba(255,255,255,0.05); padding: 0.15rem 0.5rem; border-radius: 4px; font-family: monospace; }
         .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; z-index: 999; white-space: nowrap; }
         /* Responsive */
@@ -320,8 +355,11 @@ export default function AdminSongs() {
               </div>
 
               <div className="action-row">
-                <button className="btn-save" disabled={saving} onClick={saveSong}>
+                <button className="btn-save" disabled={saving || refetching} onClick={saveSong}>
                   {saving ? 'Saving…' : '✓ Save changes'}
+                </button>
+                <button className="btn-refetch" disabled={refetching || saving} onClick={refetchLyrics}>
+                  {refetching ? <><span className="spinner" /> Fetching…</> : '⬇ Re-fetch lyrics'}
                 </button>
                 <button className="btn-cancel" onClick={() => setEditing(null)}>Cancel</button>
                 <button
