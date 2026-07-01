@@ -160,6 +160,7 @@ export default function AdminTopics() {
         .btn-edit { background: transparent; color: var(--admin-accent); border-color: var(--admin-accent); }
         .btn-delete { background: transparent; color: var(--error); border-color: var(--error); }
         .btn-pub { background: transparent; color: var(--admin-muted); border-color: var(--admin-border); text-decoration: none; }
+        .btn-wheel { background: transparent; color: #C8922A; border-color: #C8922A; text-decoration: none; }
         /* Editor */
         .editor { background: rgba(0,0,0,0.3); border: 1px solid var(--admin-accent); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .editor h2 { color: var(--admin-text); font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
@@ -326,6 +327,7 @@ export default function AdminTopics() {
             </div>
             <div className="topic-actions">
               <button className="btn-sm btn-edit" onClick={() => openEdit(topic.id)}>Edit & reorder</button>
+              <Link href={`/admin/wheel/${topic.id}`} className="btn-sm btn-wheel">🎡 Wheel</Link>
               <Link href={`/topic/${topic.id}`} target="_blank" className="btn-sm btn-pub">Preview →</Link>
               <button className="btn-sm btn-delete" disabled={actionId === topic.id} onClick={() => deleteTopic(topic.id)}>Delete</button>
             </div>

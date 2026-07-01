@@ -1,21 +1,32 @@
 // pages/api/topic-songs.js
-import { db } from '../../lib/firebase';
+import { fdb } from '../../lib/firebaseDb.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
-
   const { topicId } = req.query;
   if (!topicId) return res.status(400).json({ error: 'topicId required' });
 
   try {
-    const topicDoc = await db.collection('topics').doc(topicId).get();
+    const topicDoc = await fdb.collection('topics').doc(topicId).get();
     if (!topicDoc.exists) return res.status(404).json({ error: 'Topic not found' });
+    const data = topicDoc.data();
+    const { name, songs: songIds = [] } = data;
 
-    const { name, songs: songIds } = topicDoc.data();
+    // Wheel state
+    const wheelActive = !!data.currentSong;
+    const currentSongId = data.currentSong || null;
 
-    const songDocs = await Promise.all(
-      (songIds || []).map(id => db.collection('songs').doc(id).get())
-    );
+    // If wheel is active, fetch only the current song for public display
+    if (wheelActive && currentSongId) {
+      const doc = await fdb.collection('songs').doc(currentSongId).get();
+      const song = doc.exists
+        ? { id: doc.id, name: doc.data().name, movie: doc.data().movie || '', tamilAvailable: !!doc.data().tamilLyrics, englishAvailable: !!doc.data().englishLyrics }
+        : null;
+      return res.status(200).json({ topicName: name, songs: song ? [song] : [], wheelActive: true });
+    }
 
+    // Normal mode: show all songs
+    const songDocs = await Promise.all(songIds.map(id => fdb.collection('songs').doc(id).get()));
     const songs = songDocs
       .filter(d => d.exists)
       .map(d => ({
@@ -26,9 +37,9 @@ export default async function handler(req, res) {
         englishAvailable: !!d.data().englishLyrics,
       }));
 
-    res.status(200).json({ topicName: name, songs });
+    res.status(200).json({ topicName: name, songs, wheelActive: false });
   } catch (err) {
-    console.error(err);
+    console.error('[topic-songs]', err);
     res.status(500).json({ error: 'Failed to fetch songs' });
   }
 }

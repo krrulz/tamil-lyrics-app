@@ -1,5 +1,5 @@
 /* pages/topic/[topicId].js */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -10,15 +10,27 @@ export default function TopicPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [songFilter, setSongFilter] = useState('');
+  const pollRef = useRef(null);
+
+  const fetchData = (id) =>
+    fetch(`/api/topic-songs?topicId=${id}`)
+      .then(r => r.json())
+      .catch(() => null);
 
   useEffect(() => {
     if (!topicId) return;
-    fetch(`/api/topic-songs?topicId=${topicId}`)
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+    fetchData(topicId).then(d => { setData(d); setLoading(false); });
+
+    // Poll every 8 seconds so the page updates when admin confirms a wheel spin
+    pollRef.current = setInterval(async () => {
+      const d = await fetchData(topicId);
+      if (d) setData(d);
+    }, 8000);
+
+    return () => clearInterval(pollRef.current);
   }, [topicId]);
 
+  const wheelActive = data?.wheelActive && data?.songs?.length === 1;
 
   return (
     <>
@@ -64,11 +76,31 @@ export default function TopicPage() {
         .badge-na { background: #F5F5F5; color: #999; border: 1px solid #ddd; }
         .song-arrow { position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 1rem; }
 
+        /* Wheel spotlight card */
+        .wheel-song {
+          background: linear-gradient(135deg, #FFF8EE 0%, #FDF0D0 100%);
+          border: 2px solid var(--gold);
+          border-radius: 14px;
+          padding: 1.5rem 1.5rem 1.25rem;
+          text-decoration: none;
+          display: block;
+          position: relative;
+          box-shadow: 0 6px 24px rgba(200,146,42,0.18);
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .wheel-song:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(200,146,42,0.25); }
+        .wheel-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+        .wheel-song .song-name { font-size: 1.25rem; margin-bottom: 0.3rem; }
+        .wheel-pulse { display: inline-block; width: 7px; height: 7px; background: var(--gold); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+        .wheel-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.75rem; font-style: italic; }
+
         .loading { text-align: center; padding: 4rem 1rem; color: var(--text-muted); font-style: italic; }
         .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
         @media (max-width: 768px) {
           .container { padding: 1.5rem 1rem 2.5rem; }
           .song-item { padding: 0.85rem 1rem; }
+          .wheel-song { padding: 1.25rem 1.1rem; }
         }
         @media (max-width: 480px) {
           .song-arrow { display: none; }
@@ -95,51 +127,76 @@ export default function TopicPage() {
             <div className="page-header">
               <h1 className="page-title">{data.topicName}</h1>
             </div>
-            <p className="page-subtitle">{data.songs.length} song{data.songs.length !== 1 ? 's' : ''} in this collection</p>
 
-            <div className="filter-wrap">
-              <input
-                className="filter-input"
-                type="text"
-                placeholder="Search in this collection…"
-                value={songFilter}
-                onChange={e => setSongFilter(e.target.value)}
-              />
-              {songFilter && (
-                <button className="filter-clear" onClick={() => setSongFilter('')} aria-label="Clear search">×</button>
-              )}
-            </div>
+            {wheelActive ? (
+              <>
+                <p className="page-subtitle">Now singing</p>
+                <hr className="divider" />
+                {data.songs.map(song => (
+                  <Link key={song.id} href={`/song/${song.id}`} className="wheel-song">
+                    <div className="wheel-badge">
+                      <span className="wheel-pulse" />
+                      Now Singing
+                    </div>
+                    <div className="song-name">{song.name}</div>
+                    {song.movie && <div className="song-movie">🎬 {song.movie}</div>}
+                    <div className="song-badges">
+                      {song.tamilAvailable ? <span className="badge badge-ta">தமிழ் ✓</span> : <span className="badge badge-na">தமிழ் —</span>}
+                      {song.englishAvailable ? <span className="badge badge-en">English ✓</span> : <span className="badge badge-na">English —</span>}
+                    </div>
+                    <div className="wheel-note">Tap to view lyrics →</div>
+                  </Link>
+                ))}
+              </>
+            ) : (
+              <>
+                <p className="page-subtitle">{data.songs.length} song{data.songs.length !== 1 ? 's' : ''} in this collection</p>
 
-            {(() => {
-              const filtered = songFilter.trim()
-                ? data.songs.filter(s =>
-                    s.name.toLowerCase().includes(songFilter.toLowerCase()) ||
-                    (s.movie || '').toLowerCase().includes(songFilter.toLowerCase())
-                  )
-                : data.songs;
-              return (
-                <>
-                  {songFilter.trim() && (
-                    <p className="filter-count">{filtered.length} of {data.songs.length} songs match</p>
+                <div className="filter-wrap">
+                  <input
+                    className="filter-input"
+                    type="text"
+                    placeholder="Search in this collection…"
+                    value={songFilter}
+                    onChange={e => setSongFilter(e.target.value)}
+                  />
+                  {songFilter && (
+                    <button className="filter-clear" onClick={() => setSongFilter('')} aria-label="Clear search">×</button>
                   )}
-                  <hr className="divider" />
-                  {filtered.length === 0 && <div className="empty">No songs match your search.</div>}
-                  <div className="songs-list">
-                    {filtered.map(song => (
-                      <Link key={song.id} href={`/song/${song.id}`} className="song-item">
-                        <div className="song-name">{song.name}</div>
-                        {song.movie && <div className="song-movie">🎬 {song.movie}</div>}
-                        <div className="song-badges">
-                          {song.tamilAvailable ? <span className="badge badge-ta">தமிழ் ✓</span> : <span className="badge badge-na">தமிழ் —</span>}
-                          {song.englishAvailable ? <span className="badge badge-en">English ✓</span> : <span className="badge badge-na">English —</span>}
-                        </div>
-                        <span className="song-arrow">→</span>
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              );
-            })()}
+                </div>
+
+                {(() => {
+                  const filtered = songFilter.trim()
+                    ? data.songs.filter(s =>
+                        s.name.toLowerCase().includes(songFilter.toLowerCase()) ||
+                        (s.movie || '').toLowerCase().includes(songFilter.toLowerCase())
+                      )
+                    : data.songs;
+                  return (
+                    <>
+                      {songFilter.trim() && (
+                        <p className="filter-count">{filtered.length} of {data.songs.length} songs match</p>
+                      )}
+                      <hr className="divider" />
+                      {filtered.length === 0 && <div className="empty">No songs match your search.</div>}
+                      <div className="songs-list">
+                        {filtered.map(song => (
+                          <Link key={song.id} href={`/song/${song.id}`} className="song-item">
+                            <div className="song-name">{song.name}</div>
+                            {song.movie && <div className="song-movie">🎬 {song.movie}</div>}
+                            <div className="song-badges">
+                              {song.tamilAvailable ? <span className="badge badge-ta">தமிழ் ✓</span> : <span className="badge badge-na">தமிழ் —</span>}
+                              {song.englishAvailable ? <span className="badge badge-en">English ✓</span> : <span className="badge badge-na">English —</span>}
+                            </div>
+                            <span className="song-arrow">→</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
+              </>
+            )}
           </>
         )}
         {!loading && !data && <div className="empty">Topic not found.</div>}
