@@ -35,6 +35,7 @@ export default function AdminDashboard() {
     { href: '/admin/topics', icon: '📚', label: 'Topics', desc: 'Build and publish topic collections', color: '#F87171' },
     { href: '/admin/analytics', icon: '📊', label: 'Analytics', desc: 'Vote stats and insights', color: '#A78BFA' },
     { href: '/admin/access', icon: '🔑', label: 'Access', desc: 'Approve admin access requests', color: '#FB923C' },
+    { href: '/admin/game', icon: '🎵', label: 'Guess the Song', desc: 'Manage game interludes and spin wheel', color: '#22c55e' },
   ];
 
   return (
