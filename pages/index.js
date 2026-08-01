@@ -198,7 +198,7 @@ export default function Home() {
       <footer>
         <div className="footer-links">
           <Link href="/suggest" className="footer-link">🎵 Suggest a song</Link>
-          {process.env.NEXT_PUBLIC_TENANT_ID === 'group2' && (
+          {process.env.NEXT_PUBLIC_ENABLE_GAME === 'true' && (
             <Link href="/game" className="footer-link">🎮 Guess the Song</Link>
           )}
           <Link href="/admin" className="footer-link">⚙ Admin</Link>
