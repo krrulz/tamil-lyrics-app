@@ -16,9 +16,7 @@ const NODE_EXE   = 'C:\\Program Files\\nodejs\\node.exe';
 const YT_DLP     = path.join(__dirname, 'yt-dlp.exe');
 const FULL_DIR   = path.join(__dirname, 'full-songs');
 const OUT_DIR    = path.join(__dirname, 'interludes');
-const PROJECT  = 'tamil-lyrics-app';
-const TENANT   = 'group2';
-const COLLECTION = `${TENANT}_gameInterludes`;
+const PROJECT       = 'tamil-lyrics-app';
 const CLIP_DURATION = 15;
 
 function loadEnv() {
@@ -64,6 +62,11 @@ function request(method, url, headers, body) {
 async function main() {
   const timings = JSON.parse(fs.readFileSync(path.join(__dirname, 'interlude-timings.json'), 'utf8'));
   const missing = timings.filter(t => t.start === 0);
+  const env = loadEnv();
+  const tenant = env.TENANT_ID || '';
+  const COLLECTION = tenant ? `${tenant}_gameInterludes` : 'gameInterludes';
+  console.log(`TENANT_ID: ${tenant || '(none)'} → writing to: ${COLLECTION}\n`);
+
   if (missing.length) {
     console.log(`⚠  ${missing.length} songs still have start=0:`);
     missing.forEach(t => console.log(`   - ${t.song}`));
@@ -71,7 +74,6 @@ async function main() {
     process.exit(1);
   }
 
-  const env = loadEnv();
   const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
 
   process.stdout.write('Obtaining tokens… ');

@@ -1,7 +1,9 @@
 'use strict';
 // sync-blob-to-firestore.js
 // Lists existing files in Vercel Blob (interludes/ prefix) and writes their
-// URLs + timing data into Firestore group2_gameInterludes — no downloads needed.
+// URLs + timing data into Firestore — no downloads needed.
+// Collection is derived from TENANT_ID in .env.local (e.g. group2_gameInterludes),
+// or plain 'gameInterludes' when TENANT_ID is not set.
 // Run: node scripts/sync-blob-to-firestore.js
 
 const fs = require('fs');
@@ -9,9 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 const https = require('https');
 
-const PROJECT    = 'tamil-lyrics-app';
-const TENANT     = 'group2';
-const COLLECTION = `${TENANT}_gameInterludes`;
+const PROJECT       = 'tamil-lyrics-app';
 const CLIP_DURATION = 15;
 
 function loadEnv() {
@@ -58,6 +58,10 @@ async function main() {
   const env = loadEnv();
   const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
   const blobToken = env.BLOB_READ_WRITE_TOKEN;
+  const tenant = env.TENANT_ID || '';
+  const COLLECTION = tenant ? `${tenant}_gameInterludes` : 'gameInterludes';
+
+  console.log(`TENANT_ID: ${tenant || '(none)'} → writing to Firestore collection: ${COLLECTION}\n`);
 
   const timings = JSON.parse(fs.readFileSync(path.join(__dirname, 'interlude-timings.json'), 'utf8'));
 
@@ -75,13 +79,19 @@ async function main() {
   }
 
   // Build a map: docId → blob URL
+  // Blob pathnames may have a random suffix (e.g. "interludes/amma-amma-AbCdEf.mp3")
+  // so match by checking if pathname starts with the docId
   const blobMap = {};
   for (const b of blobs) {
-    // pathname is like "interludes/amma-amma.mp3"
-    const filename = b.pathname.replace(/^interludes\//, '').replace(/\.mp3$/, '');
-    blobMap[filename] = b.url;
+    const filename = b.pathname.replace(/^interludes\//, '');
+    for (const { docId } of timings) {
+      if (filename.startsWith(docId)) {
+        blobMap[docId] = b.url;
+        break;
+      }
+    }
   }
-  console.log('Blob map:', Object.keys(blobMap).join(', '), '\n');
+  console.log(`Matched ${Object.keys(blobMap).length} of ${timings.length} songs to blob files\n`);
 
   // Step 2: Get Firestore token
   process.stdout.write('Obtaining Firestore token… ');
