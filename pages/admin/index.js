@@ -37,6 +37,7 @@ export default function AdminDashboard() {
     { href: '/admin/access', icon: '🔑', label: 'Access', desc: 'Approve admin access requests', color: '#FB923C' },
     ...(process.env.NEXT_PUBLIC_ENABLE_GAME === 'true' ? [
       { href: '/admin/game', icon: '🎵', label: 'Guess the Song', desc: 'Manage game interludes and spin wheel', color: '#22c55e' },
+      { href: '/admin/this-or-that', icon: '🆚', label: 'This or That', desc: 'Preview merged song-pair audio clips', color: '#a855f7' },
     ] : []),
   ];
 
